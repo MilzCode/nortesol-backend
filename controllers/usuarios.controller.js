@@ -146,6 +146,7 @@ const verDatosUsuario = async (req, res = response) => {
       admin,
     });
   } catch (error) {
+    console.log(error)
     return res.status(500).json({
       ok: false,
       msg: "Error inesperado al editar usuario, consulte con el administrador",
