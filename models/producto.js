@@ -52,14 +52,14 @@ const ProductoSchema = new Schema({
 		ref: 'DetalleProducto',
 		required: [true, 'El detalle del producto es requerido'],
 	},
-	cantidad: {
-		type: Number,
-		default: 0,
+	marca: {
+		type: String,
+		default: 'otras-marcas',
 	},
 });
 
 ProductoSchema.method('toJSON', function () {
-	let { __v, _id, ...object } = this.toObject();
+	let { __v, _id, estado, ...object } = this.toObject();
 	object.id = _id;
 	return object;
 });

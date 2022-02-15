@@ -16,6 +16,10 @@ const DetalleProductoSchema = new Schema({
 			return value.length <= MAXIMAGENESPORPRODUCTO;
 		},
 	},
+	cantidad: {
+		type: Number,
+		default: 0,
+	},
 });
 
 DetalleProductoSchema.method('toJSON', function () {

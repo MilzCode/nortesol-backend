@@ -49,6 +49,7 @@ const crearProducto = async (req, res = response) => {
 
 		const detallesAdicionales = new DetalleProducto({
 			descripcion,
+			cantidad,
 		});
 		const producto = new Producto({
 			nombre: nombre.toUpperCase(),
@@ -56,7 +57,6 @@ const crearProducto = async (req, res = response) => {
 			precio,
 			categorias: idCategoriasEncontradas,
 			relevancia,
-			cantidad,
 			detalle_producto: detallesAdicionales._id,
 		});
 
