@@ -35,7 +35,7 @@ const buscarCategoriasValidas = async (categorias = [], maxCategorias = 4) => {
     }
     const buscarCategorias = await Promise.all(
       categorias.map((categ) =>
-        Categoria.findOne({ nombre: categ.toUpperCase() })
+        Categoria.findOne({ nombre: categ.toLowerCase() })
       )
     );
     const categoriasEncontradas = buscarCategorias.filter((categ) => !!categ);
@@ -49,7 +49,7 @@ const buscarCategoriasValidas = async (categorias = [], maxCategorias = 4) => {
       );
       const nombreCategoriasNoEncontradas = categorias.filter(
         (categoria) =>
-          !nombreCategoriasEncontradas.includes(categoria.toUpperCase())
+          !nombreCategoriasEncontradas.includes(categoria.toLowerCase())
       );
       return {
         ok: false,

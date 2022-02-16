@@ -14,6 +14,7 @@ class Server {
 			categorias: '/api/categorias',
 			pedidos: '/api/pedidos',
 			images: '/api/images',
+			marcas: '/api/marcas',
 		};
 		this.connectDb();
 		this.middlewares();
@@ -46,6 +47,7 @@ class Server {
 		this.app.use(this.rutas.categorias, require('../routes/categorias.route'));
 		this.app.use(this.rutas.pedidos, require('../routes/pedidos.route'));
 		this.app.use(this.rutas.images, require('../routes/images.route'));
+		this.app.use(this.rutas.marcas, require('../routes/marcas.route'));
 	}
 
 	listen() {

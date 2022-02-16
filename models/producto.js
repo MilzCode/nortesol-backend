@@ -6,7 +6,6 @@ const ProductoSchema = new Schema({
 	nombre: {
 		type: String,
 		required: [true, 'El nombre es requerido'],
-		unique: true,
 	},
 	nombre_url: {
 		type: String,
@@ -53,8 +52,12 @@ const ProductoSchema = new Schema({
 		required: [true, 'El detalle del producto es requerido'],
 	},
 	marca: {
-		type: String,
-		default: 'otras-marcas',
+		type: Schema.Types.ObjectId,
+		ref: 'Marca',
+	},
+	descuento: {
+		type: Number,
+		default: 0,
 	},
 });
 

@@ -46,12 +46,14 @@ const actualizarImagenProducto = async (req, res = response) => {
 
 		//Limpiar imagenes previas si existen
 		const imagenesPrevias = detalleProducto.imagenes;
+		console.log(imagenesPrevias);
 		//no necesitamos que esto sea asincrono.
 		imagenesPrevias.forEach((imagen) => {
 			if (imagen) {
 				const nombreArr = imagen.split('/');
 				const nombreConExtension = nombreArr[nombreArr.length - 1];
 				const nombreSinExtension = nombreConExtension.split('.')[0];
+				console.log(nombreSinExtension);
 				cloudinary.uploader.destroy(nombreSinExtension);
 			}
 		});

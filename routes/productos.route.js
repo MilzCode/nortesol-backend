@@ -5,6 +5,7 @@ const {
 	mostrarProductosPage,
 	mostrarProducto,
 	buscarProductoNombre,
+	editarProducto,
 } = require('../controllers/productos.controller');
 const { validarCampos } = require('../middlewares/validar-campos');
 const { validarJWT } = require('../middlewares/validar-jwt');
@@ -44,6 +45,17 @@ router.post(
 		validarCampos,
 	],
 	crearProducto
+);
+router.put(
+	'/:id',
+	[
+		check('id', 'El id del producto es obligatorio').not().isEmpty(),
+		check('id', 'No es un id valido').isMongoId(),
+		validarJWT,
+		tieneRol('ADMIN'),
+		validarCampos,
+	],
+	editarProducto
 );
 
 router.get('/', mostrarProductosPage);
