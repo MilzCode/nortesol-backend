@@ -19,7 +19,6 @@ const mostrarMarcas = async (req, res) => {
 const crearMarca = async (req, res) => {
 	try {
 		const { nombre } = req.body;
-		console.log("creando marca")
 		const nuevaMarca = new Marca({
 			nombre: nombre.toLowerCase().trim().replace('_', ' '),
 		});

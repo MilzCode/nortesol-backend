@@ -6,7 +6,10 @@ const Categoria = require('../models/categoria');
 const Marca = require('../models/marca');
 const buscarCategoriasValidas = require('../utils/buscar-categorias-validas');
 const { urlStyle } = require('../utils/url-style');
-const { MAXCATEGORIASPORPRODUCTO } = require('../utils/constantes');
+const {
+	MAXCATEGORIASPORPRODUCTO,
+	NOMONGOIDKEY_DONOTCHANGE,
+} = require('../utils/constantes');
 const CompareArray = require('../utils/comparar-arrays');
 /*
   TODO: Almacenar nombres en minuscula
@@ -171,10 +174,12 @@ const mostrarProductosPage = async (req, res = response) => {
 
 const mostrarProducto = async (req, res = response) => {
 	try {
-		const { id } = req.params;
-		const isMongoId = ObjectId.isValid(id);
+		let { id } = req.params;
+		const isNombre = id.includes(NOMONGOIDKEY_DONOTCHANGE);
+		const isMongoId = ObjectId.isValid(id) && !isNombre;
+		id = id.split(NOMONGOIDKEY_DONOTCHANGE).slice(1).join("");
 		if (!isMongoId) {
-			req.params.nombre = id;
+			req.params.nombre = id.toLowerCase();
 			return buscarProductoNombre(req, res);
 		}
 		const producto = await Producto.findById(id)
@@ -185,7 +190,7 @@ const mostrarProducto = async (req, res = response) => {
 		if (!producto) {
 			return res.status(404).json({
 				ok: false,
-				msg: 'No se encontro el producto',
+				msg: 'No se encontro el producto (1*)',
 			});
 		}
 

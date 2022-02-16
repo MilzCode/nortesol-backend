@@ -15,7 +15,6 @@ const { MAXIMAGENESPORPRODUCTO } = require('../utils/constantes');
 
 const actualizarImagenProducto = async (req, res = response) => {
 	try {
-		console.log('SUBIENDO IMAGEN');
 
 		const { idProducto } = req.params;
 		const archivos = req.validFiles;
@@ -46,14 +45,12 @@ const actualizarImagenProducto = async (req, res = response) => {
 
 		//Limpiar imagenes previas si existen
 		const imagenesPrevias = detalleProducto.imagenes;
-		console.log(imagenesPrevias);
 		//no necesitamos que esto sea asincrono.
 		imagenesPrevias.forEach((imagen) => {
 			if (imagen) {
 				const nombreArr = imagen.split('/');
 				const nombreConExtension = nombreArr[nombreArr.length - 1];
 				const nombreSinExtension = nombreConExtension.split('.')[0];
-				console.log(nombreSinExtension);
 				cloudinary.uploader.destroy(nombreSinExtension);
 			}
 		});
@@ -64,7 +61,6 @@ const actualizarImagenProducto = async (req, res = response) => {
 		});
 
 		const esperarSubir = await Promise.all(subirCloudinary);
-		console.log('termino subida');
 		if (!esperarSubir || esperarSubir.length !== archivos.length) {
 			return res
 				.status(400)

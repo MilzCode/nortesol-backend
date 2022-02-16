@@ -32,10 +32,22 @@ const validarJWT = async (req, res = response, next) => {
 		// }
 		req.usuarioAuth = usuarioAuth;
 	} catch (error) {
+		if (error.name === 'TokenExpiredError') {
+			return res.status(401).json({
+				ok: false,
+				msg: 'Token expirado',
+			});
+		}
+		if (error.name === 'JsonWebTokenError') {
+			return res.status(400).json({
+				ok: false,
+				msg: 'Token no valido',
+			});
+		}
 		console.log(error);
-		return res.status(400).json({
+		return res.status(500).json({
 			ok: false,
-			msg: 'Token no valido',
+			msg: 'Error validando token',
 		});
 	}
 	next();
