@@ -89,6 +89,15 @@ const UsuarioSchema = new Schema({
 		],
 		default: [],
 	},
+	carrito: {
+		type: [
+			{
+				type: Schema.Types.ObjectId,
+				ref: 'Producto',
+			},
+		],
+		default: [],
+	},
 });
 //Acontinuacion se define el metodo toJSON para que no se muestre el password (y version) en la respuesta (en cualquier lugar que se haga una consulta aca se establecera su respuesta)
 UsuarioSchema.methods.toJSON = function () {

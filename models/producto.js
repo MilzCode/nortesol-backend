@@ -12,6 +12,10 @@ const ProductoSchema = new Schema({
 		required: [true, 'El nombre_url es requerido'],
 		unique: true,
 	},
+	pid: {
+		type: String,
+		required: [true, 'El pid es requerido'],
+	},
 	estado: {
 		type: Boolean,
 		default: true,

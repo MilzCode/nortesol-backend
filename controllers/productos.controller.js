@@ -1,4 +1,5 @@
 const { response } = require('express');
+const { v4: uuidv4 } = require('uuid');
 const { ObjectId } = require('mongoose').Types;
 const DetalleProducto = require('../models/detalle-producto');
 const Producto = require('../models/producto');
@@ -9,6 +10,8 @@ const { urlStyle } = require('../utils/url-style');
 const {
 	MAXCATEGORIASPORPRODUCTO,
 	NOMONGOIDKEY_DONOTCHANGE,
+	SEPARADOR,
+	MAXPRODUCTOSCARRITO,
 } = require('../utils/constantes');
 const CompareArray = require('../utils/comparar-arrays');
 /*
@@ -27,16 +30,26 @@ const crearProducto = async (req, res = response) => {
 			marca,
 		} = req.body;
 		const url = urlStyle(nombre);
+		if (categorias.length > MAXCATEGORIASPORPRODUCTO) {
+			return res.status(400).json({
+				ok: false,
+				msg:
+					'El producto no puede tener mas de ' +
+					MAXCATEGORIASPORPRODUCTO +
+					' categorias',
+			});
+		}
 		const existeNombreUrl = await Producto.findOne({
 			nombre_url: url,
 		});
 
-		if (existeNombreUrl) {
+		if (existeNombreUrl || nombre.includes(SEPARADOR)) {
 			return res.status(400).json({
 				ok: false,
 				msg: 'El nombre del producto ya existe: ' + nombre.toLowerCase(),
 			});
 		}
+
 		const buscarCategorias = await buscarCategoriasValidas(
 			categorias,
 			MAXCATEGORIASPORPRODUCTO
@@ -78,6 +91,7 @@ const crearProducto = async (req, res = response) => {
 			relevancia,
 			detalle_producto: detallesAdicionales._id,
 			marca: buscarMarca._id,
+			pid: url[0] + uuidv4() + url[url.length - 1],
 		});
 
 		await producto.save();
@@ -122,8 +136,9 @@ const mostrarProductosPage = async (req, res = response) => {
 		const page = Number(req.query.page) || 1;
 		const limit = Math.min(Number(req.query.limit), 30) || 12;
 		const categoria = req.query.cat || undefined;
-		const sort_query = req.body.sort_query || {};
-		let productos = [];
+		const productosFind = req.query.find_prod;
+		const sort_query = {};
+		let productos = {};
 
 		const optionsPagination = {
 			page: page,
@@ -133,7 +148,15 @@ const mostrarProductosPage = async (req, res = response) => {
 
 		switch (categoria) {
 			case undefined:
-				productos = await Producto.paginate({}, optionsPagination);
+				if (productosFind) {
+					productos.docs = await Producto.find({
+						pid: { $in: productosFind },
+					})
+						.limit(MAXPRODUCTOSCARRITO)
+						.populate('detalle_producto', 'cantidad');
+				} else {
+					productos = await Producto.paginate({}, optionsPagination);
+				}
 				break;
 			default:
 				const esMongoIdCat = ObjectId.isValid(categoria);
@@ -149,12 +172,9 @@ const mostrarProductosPage = async (req, res = response) => {
 						categoriaId = categoriaDB._id;
 					}
 				}
-				productos = await Producto.paginate(
-					{
-						categorias: categoriaId,
-					},
-					optionsPagination
-				);
+				productos.docs = await Producto.find({
+					categorias: categoriaId,
+				}).limit(limit);
 				break;
 		}
 
@@ -177,7 +197,7 @@ const mostrarProducto = async (req, res = response) => {
 		let { id } = req.params;
 		const isNombre = id.includes(NOMONGOIDKEY_DONOTCHANGE);
 		const isMongoId = ObjectId.isValid(id) && !isNombre;
-		id = id.split(NOMONGOIDKEY_DONOTCHANGE).slice(1).join("");
+		id = id.split(NOMONGOIDKEY_DONOTCHANGE).slice(1).join('');
 		if (!isMongoId) {
 			req.params.nombre = id.toLowerCase();
 			return buscarProductoNombre(req, res);
@@ -275,6 +295,15 @@ const editarProducto = async (req, res = response) => {
 			marca,
 		} = req.body;
 		const { id } = req.params;
+		if (categorias && categorias.length > MAXCATEGORIASPORPRODUCTO) {
+			return res.status(400).json({
+				ok: false,
+				msg:
+					'El producto no puede tener mas de ' +
+					MAXCATEGORIASPORPRODUCTO +
+					' categorias',
+			});
+		}
 		const productoOriginal = await Producto.findById(id)
 			.populate('categorias', 'nombre')
 			.populate('detalle_producto');
@@ -340,7 +369,7 @@ const editarProducto = async (req, res = response) => {
 			const existeNombreurl = await Producto.findOne({
 				nombre_url: url,
 			});
-			if (existeNombreurl) {
+			if (existeNombreurl || nombre.includes(SEPARADOR)) {
 				return res.status(400).json({
 					ok: false,
 					msg: 'El nombre del producto ya existe: ' + nombre.toLowerCase(),
