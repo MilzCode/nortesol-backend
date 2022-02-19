@@ -98,6 +98,10 @@ const UsuarioSchema = new Schema({
 		],
 		default: [],
 	},
+	tienepassword: {
+		type: Boolean,
+		default: true,
+	},
 });
 //Acontinuacion se define el metodo toJSON para que no se muestre el password (y version) en la respuesta (en cualquier lugar que se haga una consulta aca se establecera su respuesta)
 UsuarioSchema.methods.toJSON = function () {

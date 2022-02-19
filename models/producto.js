@@ -39,6 +39,9 @@ const ProductoSchema = new Schema({
 		},
 		required: [true, 'La categoría es requerida'],
 	},
+	categorias_names: {
+		type: [String],
+	},
 	imagen: {
 		type: String,
 	},
@@ -58,6 +61,9 @@ const ProductoSchema = new Schema({
 	marca: {
 		type: Schema.Types.ObjectId,
 		ref: 'Marca',
+	},
+	marca_name: {
+		type: String,
 	},
 	descuento: {
 		type: Number,

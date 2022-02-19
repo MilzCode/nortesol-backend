@@ -11,11 +11,12 @@ const validarArchivoSubir = (req, res, next) => {
  * y tambien valida que este algun archivo en la request.
  * Si no incluye ninguna extension por defecto revisara: ('jpg', 'jpeg', 'png', 'gif').
  * Si todo sale bien almacena en la request req.validFiles, un array con los archivos.
- *
+ * LOS ARCHIVOS DEBEN MANDARSE COMO FILES!
  */
+
 const validarExtensiones = (...extensiones) => {
 	return async (req, res = response, next) => {
-		console.log('Validar extension...');
+		// console.log('Validar extension...');
 		if (!req.files || Object.keys(req.files).length === 0) {
 			res
 				.status(400)

@@ -3,8 +3,16 @@ const MAXCATEGORIASPORPRODUCTO = 3;
 const MINCARACTERESCONTRASENA = 6;
 //Algunos nombres como "cuadernozaza" pueden coincidir con un mongo id valido, esta llave es para verificar que es un string y no un mongo id.
 const NOMONGOIDKEY_DONOTCHANGE = 'NAME---';
-const SEPARADOR = '//';
+const SEPARADOR = ',';
 const MAXPRODUCTOSCARRITO = 30;
+const MAXPORTADAS = 5;
+
+//FILTER SEARCH OPTIONS
+const MAXCATEGORIASFILTER = 3;
+const MAXMARCASFILTER = 3;
+const PRECIOMINFILTER = 0;
+const PRECIOMAXFILTER = 1000000;
+const MAXTEXTBUSQUEDAFILTER = 20;
 
 const ROLES = ['ADMIN', 'USER']; //esta variable no se enlaza con la base de datos.
 
@@ -16,4 +24,10 @@ module.exports = {
 	NOMONGOIDKEY_DONOTCHANGE,
 	SEPARADOR,
 	MAXPRODUCTOSCARRITO,
+	PRECIOMINFILTER,
+	PRECIOMAXFILTER,
+	MAXCATEGORIASFILTER,
+	MAXMARCASFILTER,
+	MAXPORTADAS,
+	MAXTEXTBUSQUEDAFILTER,
 };

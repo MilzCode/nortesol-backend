@@ -2,10 +2,10 @@ const { Router } = require('express');
 const { check } = require('express-validator');
 const {
 	crearProducto,
-	mostrarProductosPage,
 	mostrarProducto,
 	buscarProductoNombre,
 	editarProducto,
+	buscarProductosFiltros,
 } = require('../controllers/productos.controller');
 const { validarCampos } = require('../middlewares/validar-campos');
 const { validarJWT } = require('../middlewares/validar-jwt');
@@ -58,8 +58,6 @@ router.put(
 	editarProducto
 );
 
-router.get('/', mostrarProductosPage);
-
 router.get(
 	'/:id',
 	[
@@ -69,6 +67,10 @@ router.get(
 		validarCampos,
 	],
 	mostrarProducto
+);
+
+router.get('/search/productos/', (req, res) =>
+	buscarProductosFiltros(req, res)
 );
 
 module.exports = router;

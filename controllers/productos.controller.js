@@ -12,6 +12,11 @@ const {
 	NOMONGOIDKEY_DONOTCHANGE,
 	SEPARADOR,
 	MAXPRODUCTOSCARRITO,
+	PRECIOMAXFILTER,
+	PRECIOMINFILTER,
+	MAXCATEGORIASFILTER,
+	MAXMARCASFILTER,
+	MAXTEXTBUSQUEDAFILTER,
 } = require('../utils/constantes');
 const CompareArray = require('../utils/comparar-arrays');
 /*
@@ -63,9 +68,11 @@ const crearProducto = async (req, res = response) => {
 					  buscarCategorias.categorias,
 			});
 		}
-		const idCategoriasEncontradas = buscarCategorias.categorias.map(
-			(categ) => categ._id
-		);
+		let nombresCategoriasEncontradas = [];
+		const idCategoriasEncontradas = buscarCategorias.categorias.map((categ) => {
+			nombresCategoriasEncontradas.push(categ.nombre);
+			return categ._id;
+		});
 
 		const detallesAdicionales = new DetalleProducto({
 			descripcion,
@@ -88,9 +95,11 @@ const crearProducto = async (req, res = response) => {
 			nombre_url: url,
 			precio,
 			categorias: idCategoriasEncontradas,
+			categorias_names: nombresCategoriasEncontradas,
 			relevancia,
 			detalle_producto: detallesAdicionales._id,
 			marca: buscarMarca._id,
+			marca_name: buscarMarca.nombre,
 			pid: url[0] + uuidv4() + url[url.length - 1],
 		});
 
@@ -115,79 +124,6 @@ const crearProducto = async (req, res = response) => {
 		return res.status(500).json({
 			ok: false,
 			msg: 'Error inesperado al crear Producto, consulte con el administrador',
-		});
-	}
-};
-/**
- * Este metodo se encarga de mostrar los productos de forma paginada
- *
- * Recibe en los params:
- * @param {Number} pagina - Numero de pagina (params) default: 1
- * @param {Number} limite - Numero de productos por pagina (params) default: 10
- *
- * Recibe en el body :
- * @param {String} sort_query - Campo por el cual se ordenara la busqueda (body) default: { }
- *
- * @return {JSON} - Retorna un JSON con los productos encontrados
- *
- *  **/
-const mostrarProductosPage = async (req, res = response) => {
-	try {
-		const page = Number(req.query.page) || 1;
-		const limit = Math.min(Number(req.query.limit), 30) || 12;
-		const categoria = req.query.cat || undefined;
-		const productosFind = req.query.find_prod;
-		const sort_query = {};
-		let productos = {};
-
-		const optionsPagination = {
-			page: page,
-			limit: limit,
-			sort: sort_query,
-		};
-
-		switch (categoria) {
-			case undefined:
-				if (productosFind) {
-					productos.docs = await Producto.find({
-						pid: { $in: productosFind },
-					})
-						.limit(MAXPRODUCTOSCARRITO)
-						.populate('detalle_producto', 'cantidad');
-				} else {
-					productos = await Producto.paginate({}, optionsPagination);
-				}
-				break;
-			default:
-				const esMongoIdCat = ObjectId.isValid(categoria);
-				let categoriaId;
-
-				if (esMongoIdCat) {
-					categoriaId = categoria;
-				} else {
-					const categoriaDB = await Categoria.findOne({
-						nombre: categoria.toLowerCase(),
-					});
-					if (categoriaDB) {
-						categoriaId = categoriaDB._id;
-					}
-				}
-				productos.docs = await Producto.find({
-					categorias: categoriaId,
-				}).limit(limit);
-				break;
-		}
-
-		res.json({
-			ok: true,
-			productos,
-		});
-	} catch (error) {
-		console.log(error);
-		return res.status(500).json({
-			ok: false,
-			msg:
-				'Error inesperado al mostrar Productos, consulte con el administrador',
 		});
 	}
 };
@@ -399,9 +335,12 @@ const editarProducto = async (req, res = response) => {
 						  buscarCategorias.categorias,
 				});
 			}
-			NUEVADATA.categorias = buscarCategorias.categorias.map(
-				(categ) => categ._id
-			);
+			let categoriasNames = [];
+			NUEVADATA.categorias = buscarCategorias.categorias.map((categ) => {
+				categoriasNames.push(categ.nombre);
+				return categ._id;
+			});
+			NUEVADATA.categorias_names = categoriasNames;
 		}
 		if (nuevaRelevancia) {
 			NUEVADATA.relevancia = relevancia;
@@ -424,6 +363,7 @@ const editarProducto = async (req, res = response) => {
 				});
 			}
 			NUEVADATA.marca = buscarMarca._id;
+			NUEVADATA.marca_name = buscarMarca.nombre;
 		}
 		//@Fin de Validacion de ingresos e guardado de nueva data
 		/////////////////////////////////////////////////////////////////////
@@ -474,11 +414,116 @@ const editarProducto = async (req, res = response) => {
 	}
 };
 
+/**
+ * Este metodo se encarga de mostrar los productos de forma paginada
+ */
+const buscarProductosFiltros = async (req, res, mode) => {
+	let {
+		busqueda,
+		cantidad,
+		categorias,
+		descuento_min,
+		marcas,
+		precio_min,
+		precio_max,
+		relevancia,
+		find_productos_pids,
+		//
+		sortFechaDesc,
+		sortNombreDesc,
+		sortDescuentoDesc,
+		sortRelevanciaDesc,
+		sortPrecio,
+		sortPrecioDesc,
+	} = req.query;
+
+	try {
+		let filters = {};
+		//@Revisando los ingresos
+		if (busqueda) {
+			if (busqueda.length > MAXTEXTBUSQUEDAFILTER) {
+				busqueda = busqueda.substring(0, MAXTEXTBUSQUEDAFILTER);
+			}
+			if (busqueda.length > 3) {
+				busqueda = busqueda.slice(0, -2);
+			}
+			const busquedaRegex = new RegExp(busqueda, 'i');
+			filters.nombre = busquedaRegex;
+		}
+		if (cantidad) {
+			filters.cantidad = { $gte: Number(cantidad) };
+		}
+		if (
+			categorias &&
+			categorias.length > 0 &&
+			categorias.length <= MAXCATEGORIASFILTER
+		) {
+			filters.categorias_names = { $in: categorias };
+		}
+		if (descuento_min) {
+			filters.descuento = { $gte: Number(descuento_min) };
+		}
+		if (marcas && marcas.length > 0 && marcas.length <= MAXMARCASFILTER) {
+			filters.marca_name = { $in: marcas };
+		}
+		if (precio_min && precio_min >= PRECIOMINFILTER) {
+			filters.precio = { $gte: Number(precio_min) };
+		}
+		if (precio_max && precio_max <= PRECIOMAXFILTER) {
+			filters.precio = { $lte: Number(precio_max) };
+		}
+		if (relevancia) {
+			filters.relevancia = { $gte: Number(relevancia) };
+		}
+		if (find_productos_pids) {
+			filters.pid = { $in: find_productos_pids };
+		}
+		//@Fin de revisando los ingresos
+		///////////////////////////////////////////////////////////////
+		const page = Number(req.query.page) || 1;
+		const limit = Math.min(Number(req.query.limit), 30) || 12;
+		let optionsPagination = {
+			page: page,
+			limit: limit,
+		};
+		let productos = [];
+		if (sortFechaDesc) {
+			optionsPagination.sort = { created_at: -1 };
+			productos = await Producto.paginate(filters, optionsPagination);
+		} else if (sortNombreDesc) {
+			optionsPagination.sort = { nombre: -1 };
+			productos = await Producto.paginate(filters, optionsPagination);
+		} else if (sortDescuentoDesc) {
+			optionsPagination.sort = { descuento: -1 };
+			productos = await Producto.paginate(filters, optionsPagination);
+		} else if (sortRelevanciaDesc) {
+			optionsPagination.sort = { relevancia: -1 };
+			productos = await Producto.paginate(filters, optionsPagination);
+		} else if (sortPrecio) {
+			optionsPagination.sort = { precio: 1 };
+			productos = await Producto.paginate(filters, optionsPagination);
+		} else if (sortPrecioDesc) {
+			optionsPagination.sort = { precio: -1 };
+			productos = await Producto.paginate(filters, optionsPagination);
+		} else {
+			productos = await Producto.paginate(filters, optionsPagination);
+		}
+		return res.json({ ok: true, productos });
+	} catch (err) {
+		console.log(err);
+		return res.status(400).json({
+			ok: false,
+			msg:
+				'¿Algun parametro de busqueda es incorrecto?, sino es así consulte al administrador',
+		});
+	}
+};
+
 module.exports = {
 	crearProducto,
 	editarProducto,
-	mostrarProductosPage,
 	mostrarProducto,
 	buscarProductoNombre,
 	borrarProductoDefinitivamente,
+	buscarProductosFiltros,
 };

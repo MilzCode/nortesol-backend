@@ -15,6 +15,7 @@ class Server {
 			pedidos: '/api/pedidos',
 			images: '/api/images',
 			marcas: '/api/marcas',
+			portadas: '/api/portadas',
 			test: '/api/test',
 		};
 		this.connectDb();
@@ -49,6 +50,7 @@ class Server {
 		this.app.use(this.rutas.pedidos, require('../routes/pedidos.route'));
 		this.app.use(this.rutas.images, require('../routes/images.route'));
 		this.app.use(this.rutas.marcas, require('../routes/marcas.route'));
+		this.app.use(this.rutas.portadas, require('../routes/portadas.route'));
 		this.app.use(this.rutas.test, require('../routes/test.route'));
 	}
 

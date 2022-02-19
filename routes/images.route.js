@@ -2,6 +2,7 @@ const { Router } = require('express');
 const { check } = require('express-validator');
 const {
 	actualizarImagenProducto,
+	actualizarImagenPortada,
 } = require('../controllers/images.controller');
 const { validarExtensiones } = require('../middlewares/validar-archivo');
 const { validarCampos } = require('../middlewares/validar-campos');
@@ -24,6 +25,17 @@ router.put(
 	],
 
 	actualizarImagenProducto
+);
+
+router.put(
+	'/portada/:idPortada',
+	[
+		validarExtensiones('jpg', 'jpeg', 'png', 'gif'),
+		validarJWT,
+		tieneRol('ADMIN'),
+		validarCampos,
+	],
+	actualizarImagenPortada
 );
 
 module.exports = router;
