@@ -1,16 +1,9 @@
-/**
- * Productos_desabilitados es un espejo de productos
- *
- * por lo que los metodos son los mismos y cambia solamente los nombres.
- *
- */
-
 const { response } = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { ObjectId } = require('mongoose').Types;
 const DetalleProducto = require('../models/detalle_producto');
-const ProductoDesabilitado = require('../models/producto_desabilitado');
-const Producto = require('../models/producto');
+const Producto = require('../models/producto_desabilitado');
+const ProductoDesabilitado = require('../models/producto');
 const Categoria = require('../models/categoria');
 const Marca = require('../models/marca');
 const buscarCategoriasValidas = require('../utils/buscar-categorias-validas');
@@ -53,7 +46,7 @@ const crearProducto = async (req, res = response) => {
 					' categorias',
 			});
 		}
-		const existeNombreUrl = await ProductoDesabilitado.findOne({
+		const existeNombreUrl = await Producto.findOne({
 			nombre_url: url,
 		});
 
@@ -98,7 +91,7 @@ const crearProducto = async (req, res = response) => {
 				msg: 'La marca no existe: ' + marca,
 			});
 		}
-		const producto = new ProductoDesabilitado({
+		const producto = new Producto({
 			nombre: nombre.toLowerCase(),
 			nombre_url: url,
 			precio,
@@ -141,7 +134,7 @@ const crearProducto = async (req, res = response) => {
 const borrarProductoDefinitivamente = async (req, res = response) => {
 	try {
 		const { id } = req.params;
-		const producto = await ProductoDesabilitado.findById(id);
+		const producto = await Producto.findById(id);
 		if (!producto) {
 			return res.status(404).json({
 				ok: false,
@@ -184,7 +177,7 @@ const editarProducto = async (req, res = response) => {
 					' categorias',
 			});
 		}
-		const productoOriginal = await ProductoDesabilitado.findById(id)
+		const productoOriginal = await Producto.findById(id)
 			.populate('categorias', 'nombre')
 			.populate('detalle_producto');
 		let nuevoNombre = false;
@@ -246,7 +239,7 @@ const editarProducto = async (req, res = response) => {
 		if (nuevoNombre) {
 			const url = urlStyle(nombre);
 			//validamos que la url no exista
-			const existeNombreurl = await ProductoDesabilitado.findOne({
+			const existeNombreurl = await Producto.findOne({
 				nombre_url: url,
 			});
 			if (existeNombreurl || nombre.includes(SEPARADOR)) {
@@ -312,13 +305,9 @@ const editarProducto = async (req, res = response) => {
 		//@Fin de Validacion de ingresos e guardado de nueva data
 		/////////////////////////////////////////////////////////////////////
 		//@Ingreso de nueva data
-		const producto = await ProductoDesabilitado.findByIdAndUpdate(
-			id,
-			NUEVADATA,
-			{
-				new: true,
-			}
-		);
+		const producto = await Producto.findByIdAndUpdate(id, NUEVADATA, {
+			new: true,
+		});
 		if (!producto) {
 			return res.status(400).json({
 				ok: false,
@@ -368,7 +357,7 @@ const editarProducto = async (req, res = response) => {
 const buscarProductoId = async (req, res, { id }) => {
 	try {
 		console.log(id);
-		const producto = await ProductoDesabilitado.findById(id)
+		const producto = await Producto.findById(id)
 			.populate('detalle_producto', 'descripcion imagenes')
 			.populate('categorias', 'nombre')
 			.populate('marca', 'nombre');
@@ -382,7 +371,7 @@ const buscarProductoId = async (req, res, { id }) => {
 
 		res.json({
 			ok: true,
-			producto,
+			productos: { docs: [producto], page: 1, totalDocs: 1, totalPages: 1 },
 		});
 	} catch (error) {
 		console.log(error);
@@ -397,7 +386,7 @@ const buscarProductoId = async (req, res, { id }) => {
  */
 const buscarProductoNombre_url = async (req, res, { nombre_url }) => {
 	try {
-		const producto = await ProductoDesabilitado.findOne({
+		const producto = await Producto.findOne({
 			nombre_url,
 		})
 			.populate('detalle_producto', 'descripcion imagenes cantidad')
@@ -413,7 +402,7 @@ const buscarProductoNombre_url = async (req, res, { nombre_url }) => {
 
 		res.json({
 			ok: true,
-			producto,
+			productos: { docs: [producto], page: 1, totalDocs: 1, totalPages: 1 },
 		});
 	} catch (error) {
 		console.log(error);
@@ -425,14 +414,12 @@ const buscarProductoNombre_url = async (req, res, { nombre_url }) => {
 };
 
 /**
- * Este metodo se encarga de retornar un producto o varios de forma paginada segun sea el caso
+ * Este metodo se encarga de retornar productos de forma paginada
  */
 const buscarProductos = async (req, res, mode) => {
 	let {
-		//retorna un producto
 		nombre_url,
 		id,
-		///Retorna de forma paginada
 		busqueda,
 		cantidad,
 		categorias,
@@ -450,7 +437,6 @@ const buscarProductos = async (req, res, mode) => {
 		sortPrecio,
 		sortPrecioDesc,
 	} = req.query;
-
 	try {
 		//@ingresos que retornan un solo producto
 		if (nombre_url) {
@@ -512,45 +498,24 @@ const buscarProductos = async (req, res, mode) => {
 		let productos = [];
 		if (sortFechaDesc) {
 			optionsPagination.sort = { created_at: -1 };
-			productos = await ProductoDesabilitado.paginate(
-				filters,
-				optionsPagination
-			);
+			productos = await Producto.paginate(filters, optionsPagination);
 		} else if (sortNombreDesc) {
 			optionsPagination.sort = { nombre: -1 };
-			productos = await ProductoDesabilitado.paginate(
-				filters,
-				optionsPagination
-			);
+			productos = await Producto.paginate(filters, optionsPagination);
 		} else if (sortDescuentoDesc) {
 			optionsPagination.sort = { descuento: -1 };
-			productos = await ProductoDesabilitado.paginate(
-				filters,
-				optionsPagination
-			);
+			productos = await Producto.paginate(filters, optionsPagination);
 		} else if (sortRelevanciaDesc) {
 			optionsPagination.sort = { relevancia: -1 };
-			productos = await ProductoDesabilitado.paginate(
-				filters,
-				optionsPagination
-			);
+			productos = await Producto.paginate(filters, optionsPagination);
 		} else if (sortPrecio) {
 			optionsPagination.sort = { precio: 1 };
-			productos = await ProductoDesabilitado.paginate(
-				filters,
-				optionsPagination
-			);
+			productos = await Producto.paginate(filters, optionsPagination);
 		} else if (sortPrecioDesc) {
 			optionsPagination.sort = { precio: -1 };
-			productos = await ProductoDesabilitado.paginate(
-				filters,
-				optionsPagination
-			);
+			productos = await Producto.paginate(filters, optionsPagination);
 		} else {
-			productos = await ProductoDesabilitado.paginate(
-				filters,
-				optionsPagination
-			);
+			productos = await Producto.paginate(filters, optionsPagination);
 		}
 		return res.json({ ok: true, productos });
 	} catch (err) {
@@ -563,11 +528,11 @@ const buscarProductos = async (req, res, mode) => {
 	}
 };
 
-//enviarAHabilitados mueve el producto hacia la collecion productos
-const enviarAHabilitados = async (req, res) => {
+//quitarYMoverDeColeccion el producto hacia la collecion productos_desabilitados
+const quitarYMoverDeColeccion = async (req, res) => {
 	try {
 		const { id } = req.params;
-		const producto_ = await ProductoDesabilitado.findById(id);
+		const producto_ = await Producto.findById(id);
 		if (!producto_) {
 			return res.status(400).json({
 				ok: false,
@@ -575,7 +540,7 @@ const enviarAHabilitados = async (req, res) => {
 			});
 		}
 		const { _id, ...prodCopy } = producto_._doc;
-		const productoDesabilitado_ = new Producto(prodCopy);
+		const productoDesabilitado_ = new ProductoDesabilitado(prodCopy);
 		await productoDesabilitado_.save();
 		await producto_.remove();
 		return res.json({ ok: true, msg: 'okokok' });
@@ -590,5 +555,5 @@ module.exports = {
 	editarProducto,
 	borrarProductoDefinitivamente,
 	buscarProductos,
-	enviarAHabilitados,
+	quitarYMoverDeColeccion,
 };

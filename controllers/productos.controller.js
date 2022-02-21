@@ -371,7 +371,7 @@ const buscarProductoId = async (req, res, { id }) => {
 
 		res.json({
 			ok: true,
-			producto,
+			productos: { docs: [producto], page: 1, totalDocs: 1, totalPages: 1 },
 		});
 	} catch (error) {
 		console.log(error);
@@ -402,7 +402,7 @@ const buscarProductoNombre_url = async (req, res, { nombre_url }) => {
 
 		res.json({
 			ok: true,
-			producto,
+			productos: { docs: [producto], page: 1, totalDocs: 1, totalPages: 1 },
 		});
 	} catch (error) {
 		console.log(error);
@@ -414,14 +414,12 @@ const buscarProductoNombre_url = async (req, res, { nombre_url }) => {
 };
 
 /**
- * Este metodo se encarga de retornar un producto o varios de forma paginada segun sea el caso
+ * Este metodo se encarga de retornar productos de forma paginada
  */
 const buscarProductos = async (req, res, mode) => {
 	let {
-		//retorna un producto
 		nombre_url,
 		id,
-		///Retorna de forma paginada
 		busqueda,
 		cantidad,
 		categorias,
@@ -439,7 +437,6 @@ const buscarProductos = async (req, res, mode) => {
 		sortPrecio,
 		sortPrecioDesc,
 	} = req.query;
-
 	try {
 		//@ingresos que retornan un solo producto
 		if (nombre_url) {
@@ -531,8 +528,8 @@ const buscarProductos = async (req, res, mode) => {
 	}
 };
 
-//desabilitarProducto mueve el producto hacia la collecion productos_desabilitados
-const enviarADeshabilitados = async (req, res) => {
+//quitarYMoverDeColeccion el producto hacia la collecion productos_desabilitados
+const quitarYMoverDeColeccion = async (req, res) => {
 	try {
 		const { id } = req.params;
 		const producto_ = await Producto.findById(id);
@@ -558,5 +555,5 @@ module.exports = {
 	editarProducto,
 	borrarProductoDefinitivamente,
 	buscarProductos,
-	enviarADeshabilitados,
+	quitarYMoverDeColeccion,
 };

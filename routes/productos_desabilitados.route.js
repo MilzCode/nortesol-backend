@@ -4,7 +4,7 @@ const {
 	crearProducto,
 	buscarProductos,
 	editarProducto,
-	enviarAHabilitados,
+	quitarYMoverDeColeccion,
 } = require('../controllers/productos_desabilitados.controller');
 const { validarCampos } = require('../middlewares/validar-campos');
 const { validarJWT } = require('../middlewares/validar-jwt');
@@ -53,6 +53,6 @@ router.put(
 
 router.get('/', (req, res) => buscarProductos(req, res));
 
-router.delete('/:id', enviarAHabilitados);
+router.delete('/:id', quitarYMoverDeColeccion);
 
 module.exports = router;
