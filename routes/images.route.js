@@ -18,7 +18,7 @@ const router = Router();
 router.put(
 	'/:idProducto',
 	[
-		validarExtensiones('jpg', 'jpeg', 'png', 'gif'),
+		validarExtensiones({ valid: ['jpg', 'jpeg', 'png', 'gif'] }),
 		validarJWT,
 		tieneRol('ADMIN'),
 		validarCampos,
@@ -30,7 +30,7 @@ router.put(
 router.put(
 	'/portada/:idPortada',
 	[
-		validarExtensiones('jpg', 'jpeg', 'png', 'gif'),
+		validarExtensiones({ valid: ['jpg', 'jpeg', 'png', 'gif'] }),
 		validarJWT,
 		tieneRol('ADMIN'),
 		validarCampos,

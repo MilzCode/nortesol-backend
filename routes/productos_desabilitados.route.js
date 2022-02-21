@@ -4,8 +4,8 @@ const {
 	crearProducto,
 	buscarProductos,
 	editarProducto,
-	enviarADeshabilitados,
-} = require('../controllers/productos.controller');
+	enviarAHabilitados,
+} = require('../controllers/productos_desabilitados.controller');
 const { validarCampos } = require('../middlewares/validar-campos');
 const { validarJWT } = require('../middlewares/validar-jwt');
 const { tieneRol } = require('../middlewares/validar-roles');
@@ -53,6 +53,6 @@ router.put(
 
 router.get('/', (req, res) => buscarProductos(req, res));
 
-router.delete('/:id', enviarADeshabilitados);
+router.delete('/:id', enviarAHabilitados);
 
 module.exports = router;

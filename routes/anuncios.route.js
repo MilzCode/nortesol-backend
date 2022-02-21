@@ -1,10 +1,12 @@
 const { Router } = require('express');
 const { check } = require('express-validator');
 const {
-	mostrarPortadas,
-	crearPortada,
-	removerPortadaDefinitivamente,
-} = require('../controllers/portadas.controller');
+	mostrarAnuncios,
+	removerAnuncioDefinitivamente,
+	crearAnuncio,
+	actualizarAnuncio,
+} = require('../controllers/anuncios.controller');
+
 const { validarExtensiones } = require('../middlewares/validar-archivo');
 
 const { validarCampos } = require('../middlewares/validar-campos');
@@ -17,7 +19,7 @@ const router = Router();
  - Validar que esten todos los campos obligatorios. ok
  - Validar que solo el administrador pueda crear marcas. 
 */
-router.get('/', mostrarPortadas);
+router.get('/', mostrarAnuncios);
 
 router.post(
 	'/',
@@ -25,21 +27,32 @@ router.post(
 		// check('nombre', 'El nombre de la marca es obligatorio').not().isEmpty(),
 		validarJWT,
 		tieneRol('ADMIN'),
-		validarExtensiones({ valid: ['jpg', 'jpeg', 'png', 'gif'] }),
+		validarExtensiones({ valid: ['jpg', 'jpeg', 'png', 'gif'], skip: true }),
 		validarCampos,
 	],
-	crearPortada
+	crearAnuncio
+);
+
+router.put(
+	'/:idAnuncio',
+	[
+		validarJWT,
+		tieneRol('ADMIN'),
+		validarExtensiones({ valid: ['jpg', 'jpeg', 'png', 'gif'], skip: true }),
+		validarCampos,
+	],
+	actualizarAnuncio
 );
 
 router.delete(
-	'/:idPortada',
+	'/:idAnuncio',
 	[
-		check('idPortada', 'El id es obligatorio').not().isEmpty(),
+		check('idAnuncio', 'El id es obligatorio').not().isEmpty(),
 		validarJWT,
 		tieneRol('ADMIN'),
 		validarCampos,
 	],
-	removerPortadaDefinitivamente
+	removerAnuncioDefinitivamente
 );
 
 module.exports = router;

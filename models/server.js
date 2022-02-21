@@ -11,11 +11,13 @@ class Server {
 			auth: '/api/auth',
 			usuarios: '/api/usuarios',
 			productos: '/api/productos',
+			productos_desabilitados: '/api/productos_desabilitados',
 			categorias: '/api/categorias',
 			pedidos: '/api/pedidos',
 			images: '/api/images',
 			marcas: '/api/marcas',
 			portadas: '/api/portadas',
+			anuncios: '/api/anuncios',
 			test: '/api/test',
 		};
 		this.connectDb();
@@ -51,6 +53,11 @@ class Server {
 		this.app.use(this.rutas.images, require('../routes/images.route'));
 		this.app.use(this.rutas.marcas, require('../routes/marcas.route'));
 		this.app.use(this.rutas.portadas, require('../routes/portadas.route'));
+		this.app.use(this.rutas.anuncios, require('../routes/anuncios.route'));
+		this.app.use(
+			this.rutas.productos_desabilitados,
+			require('../routes/productos_desabilitados.route')
+		);
 		this.app.use(this.rutas.test, require('../routes/test.route'));
 	}
 

@@ -2,7 +2,7 @@ const { Schema, model } = require('mongoose');
 const mongoosePaginate = require('mongoose-paginate-v2');
 const { MAXCATEGORIASPORPRODUCTO } = require('../utils/constantes');
 
-const ProductoSchema = new Schema({
+const ProductoDesabilitadoSchema = new Schema({
 	nombre: {
 		type: String,
 		required: [true, 'El nombre es requerido'],
@@ -75,12 +75,12 @@ const ProductoSchema = new Schema({
 	},
 });
 
-ProductoSchema.method('toJSON', function () {
+ProductoDesabilitadoSchema.method('toJSON', function () {
 	let { __v, _id, estado, ...object } = this.toObject();
 	object.id = _id;
 	return object;
 });
 
-ProductoSchema.plugin(mongoosePaginate);
+ProductoDesabilitadoSchema.plugin(mongoosePaginate);
 
-module.exports = model('Producto', ProductoSchema);
+module.exports = model('ProductoDesabilitado', ProductoDesabilitadoSchema);

@@ -15,11 +15,7 @@ const DetalleProductoSchema = new Schema({
 		validate: function (value) {
 			return value.length <= MAXIMAGENESPORPRODUCTO;
 		},
-	},
-	cantidad: {
-		type: Number,
-		default: 0,
-	},
+	}
 });
 
 DetalleProductoSchema.method('toJSON', function () {
