@@ -13,6 +13,7 @@ const DetalleProducto = require('../models/detalle_producto');
 const Producto = require('../models/producto');
 const Anuncio = require('../models/anuncio');
 const Portada = require('../models/portada');
+const ProductoDesabilitado = require('../models/producto_desabilitado');
 
 const { MAXIMAGENESPORPRODUCTO } = require('../utils/constantes');
 const { borrarImagenCloudinary } = require('../helpers/images-functions');
@@ -20,6 +21,7 @@ const { borrarImagenCloudinary } = require('../helpers/images-functions');
 const actualizarImagenProducto = async (req, res = response) => {
 	try {
 		const { idProducto } = req.params;
+		const desabilitado = req.header('des');
 		const archivos = req.validFiles;
 		if (archivos.length > MAXIMAGENESPORPRODUCTO) {
 			return res.status(400).json({
@@ -29,7 +31,12 @@ const actualizarImagenProducto = async (req, res = response) => {
 		}
 
 		//Validar idProducto que exista y sea valido
-		const producto = await Producto.findById(idProducto);
+		let producto = null;
+		if (desabilitado === 'des') {
+			producto = await ProductoDesabilitado.findById(idProducto);
+		} else {
+			producto = await Producto.findById(idProducto);
+		}
 		if (!producto) {
 			return res.status(400).json({
 				ok: false,
