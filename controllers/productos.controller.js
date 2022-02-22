@@ -1,10 +1,9 @@
 const { response } = require('express');
-const { v4: uuidv4 } = require('uuid');
+const { nanoid } = require('nanoid');
 const { ObjectId } = require('mongoose').Types;
 const DetalleProducto = require('../models/detalle_producto');
 const Producto = require('../models/producto');
 const ProductoDesabilitado = require('../models/producto_desabilitado');
-const Categoria = require('../models/categoria');
 const Marca = require('../models/marca');
 const buscarCategoriasValidas = require('../utils/buscar-categorias-validas');
 const { urlStyle } = require('../utils/url-style');
@@ -36,7 +35,7 @@ const crearProducto = async (req, res = response) => {
 			marca,
 			descuento,
 		} = req.body;
-		const url = urlStyle(nombre);
+		const url = urlStyle(nombre) + '-' + nanoid();
 		if (categorias.length > MAXCATEGORIASPORPRODUCTO) {
 			return res.status(400).json({
 				ok: false,
@@ -44,16 +43,6 @@ const crearProducto = async (req, res = response) => {
 					'El producto no puede tener mas de ' +
 					MAXCATEGORIASPORPRODUCTO +
 					' categorias',
-			});
-		}
-		const existeNombreUrl = await Producto.findOne({
-			nombre_url: url,
-		});
-
-		if (existeNombreUrl || nombre.includes(SEPARADOR)) {
-			return res.status(400).json({
-				ok: false,
-				msg: 'El nombre del producto ya existe: ' + nombre.toLowerCase(),
 			});
 		}
 
@@ -102,7 +91,7 @@ const crearProducto = async (req, res = response) => {
 			cantidad: cantidad,
 			marca: buscarMarca._id,
 			marca_name: buscarMarca.nombre,
-			pid: url[0] + uuidv4() + url[url.length - 1],
+			pid: url[0] + nanoid() + url[url.length - 1],
 			descuento,
 		});
 
@@ -124,6 +113,8 @@ const crearProducto = async (req, res = response) => {
 					'Hay algun campo repetido, revise el nombre de su producto que no exista',
 			});
 		}
+		console.log(error);
+
 		return res.status(500).json({
 			ok: false,
 			msg: 'Error inesperado al crear Producto, consulte con el administrador',
@@ -237,17 +228,7 @@ const editarProducto = async (req, res = response) => {
 		/////////////////////////////////////////////////////////////////////
 		//@Validando ingresos e guardando nueva data
 		if (nuevoNombre) {
-			const url = urlStyle(nombre);
-			//validamos que la url no exista
-			const existeNombreurl = await Producto.findOne({
-				nombre_url: url,
-			});
-			if (existeNombreurl || nombre.includes(SEPARADOR)) {
-				return res.status(400).json({
-					ok: false,
-					msg: 'El nombre del producto ya existe: ' + nombre.toLowerCase(),
-				});
-			}
+			const url = urlStyle(nombre) + '-' + nanoid();
 			NUEVADATA.nombre = nombre.toLowerCase();
 			NUEVADATA.nombre_url = url;
 		}
@@ -539,14 +520,21 @@ const quitarYMoverDeColeccion = async (req, res) => {
 				msg: 'El producto no existe',
 			});
 		}
-		const { _id, ...prodCopy } = producto_._doc;
+		let { _id, ...prodCopy } = producto_._doc;
 		const productoDesabilitado_ = new ProductoDesabilitado(prodCopy);
 		await productoDesabilitado_.save();
 		await producto_.remove();
 		return res.json({ ok: true, msg: 'okokok' });
 	} catch (error) {
+		if (error.code === 11000) {
+			return res.status(400).json({
+				ok: false,
+				msg:
+					'El producto ya existe?, contacta al administrador si el problema persiste.',
+			});
+		}
 		console.log(error);
-		return res.status(400).json({ ok: false, msg: 'error' });
+		return res.status(500).json({ ok: false, msg: 'error' });
 	}
 };
 

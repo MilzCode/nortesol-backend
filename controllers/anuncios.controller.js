@@ -2,7 +2,8 @@ const { borrarImagenCloudinary } = require('../helpers/images-functions');
 const Anuncio = require('../models/anuncio');
 const { MAXANUNCIOS } = require('../utils/constantes');
 const { actualizarImagenAnuncio } = require('./images.controller');
-const { v4: uuidv4 } = require('uuid');
+const { nanoid } = require('nanoid');
+
 
 const mostrarAnuncios = async (req, res) => {
 	try {
@@ -35,7 +36,7 @@ const crearAnuncio = async (req, res) => {
 					' Anuncios, borra el anterior.',
 			});
 		}
-		const aid = uuidv4();
+		const aid = nanoid();
 		const nuevoAnuncio = new Anuncio({
 			nombre: nombre.trim().replace('_', ' '),
 			descripcion,

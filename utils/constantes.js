@@ -3,7 +3,7 @@ const MAXCATEGORIASPORPRODUCTO = 3;
 const MINCARACTERESCONTRASENA = 6;
 //Algunos nombres como "cuadernozaza" pueden coincidir con un mongo id valido, esta llave es para verificar que es un string y no un mongo id.
 const NOMONGOIDKEY_DONOTCHANGE = 'NAME---';
-const SEPARADOR = ',';
+const SEPARADOR = '&:::';
 const MAXPRODUCTOSCARRITO = 30;
 const MAXPORTADAS = 5;
 const MAXANUNCIOS = 1;
