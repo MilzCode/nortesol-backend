@@ -32,7 +32,7 @@ const crearPortada = async (req, res) => {
 		}
 
 		const nuevaPortada = new Portada({
-			nombre: nombre.toLowerCase().trim().replace('_', ' '),
+			nombre,
 			descripcion,
 			url,
 		});
@@ -61,7 +61,7 @@ const crearPortada = async (req, res) => {
 		}
 		return res.status(500).json({
 			ok: false,
-			msg: 'Error inesperado al crear marca, consulte con el administrador',
+			msg: 'Error inesperado al crear portada, consulte con el administrador',
 		});
 	}
 };

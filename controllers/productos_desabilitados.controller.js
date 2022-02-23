@@ -83,7 +83,7 @@ const crearProducto = async (req, res = response) => {
 		const producto = new Producto({
 			nombre: nombre.toLowerCase(),
 			nombre_url: url,
-			precio,
+			precio: Math.abs(precio),
 			categorias: idCategoriasEncontradas,
 			categorias_names: nombresCategoriasEncontradas,
 			relevancia,
@@ -92,7 +92,7 @@ const crearProducto = async (req, res = response) => {
 			marca: buscarMarca._id,
 			marca_name: buscarMarca.nombre,
 			pid: url[0] + nanoid() + url[url.length - 1],
-			descuento,
+			descuento: descuento ? Math.abs(descuento) : 0,
 		});
 
 		await producto.save();
@@ -233,7 +233,7 @@ const editarProducto = async (req, res = response) => {
 			NUEVADATA.nombre_url = url;
 		}
 		if (nuevoPrecio) {
-			NUEVADATA.precio = precio;
+			NUEVADATA.precio = Math.abs(precio);
 		}
 		if (nuevaDescripcion) {
 			NUEVODATADETALLE.descripcion = descripcion;
@@ -261,13 +261,13 @@ const editarProducto = async (req, res = response) => {
 			NUEVADATA.categorias_names = categoriasNames;
 		}
 		if (nuevaRelevancia) {
-			NUEVADATA.relevancia = relevancia;
+			NUEVADATA.relevancia = Math.abs(relevancia);
 		}
 		if (nuevaCantidad) {
-			NUEVADATA.cantidad = cantidad;
+			NUEVADATA.cantidad = Math.abs(cantidad);
 		}
 		if (nuevoDescuento) {
-			NUEVADATA.descuento = descuento;
+			NUEVADATA.descuento = Math.abs(descuento);
 		}
 
 		if (nuevaMarca) {
@@ -520,8 +520,14 @@ const quitarYMoverDeColeccion = async (req, res) => {
 				msg: 'El producto no existe',
 			});
 		}
-		let { _id, ...prodCopy } = producto_._doc;
-		const productoDesabilitado_ = new ProductoDesabilitado(prodCopy);
+
+		let { _id, created_at, ...prodCopy } = producto_._doc;
+		//date now
+		created_at = new Date();
+		const productoDesabilitado_ = new ProductoDesabilitado({
+			...prodCopy,
+			created_at,
+		});
 		await productoDesabilitado_.save();
 		await producto_.remove();
 		return res.json({ ok: true, msg: 'okokok' });
