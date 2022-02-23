@@ -5,6 +5,7 @@ const {
 	buscarProductos,
 	editarProducto,
 	quitarYMoverDeColeccion,
+	borrarProductoDefinitivamente,
 } = require('../controllers/productos_desabilitados.controller');
 const { validarCampos } = require('../middlewares/validar-campos');
 const { validarJWT } = require('../middlewares/validar-jwt');
@@ -53,6 +54,26 @@ router.put(
 
 router.get('/', (req, res) => buscarProductos(req, res));
 
-router.delete('/:id', quitarYMoverDeColeccion);
+router.delete(
+	'/:id',
+	[
+		check('id', 'El id del producto es obligatorio').not().isEmpty(),
+		validarJWT,
+		tieneRol('ADMIN'),
+		validarCampos,
+	],
+	quitarYMoverDeColeccion
+);
+
+router.delete(
+	'/delete/delete/:id',
+	[
+		check('id', 'El id del producto es obligatorio').not().isEmpty(),
+		validarJWT,
+		tieneRol('ADMIN'),
+		validarCampos,
+	],
+	borrarProductoDefinitivamente
+);
 
 module.exports = router;

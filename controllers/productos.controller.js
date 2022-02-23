@@ -19,6 +19,7 @@ const {
 	MAXTEXTBUSQUEDAFILTER,
 } = require('../utils/constantes');
 const CompareArray = require('../utils/comparar-arrays');
+const { borrarImagenCloudinary } = require('../helpers/images-functions');
 /*
   TODO: Almacenar nombres en minuscula
 */
@@ -83,7 +84,7 @@ const crearProducto = async (req, res = response) => {
 		const producto = new Producto({
 			nombre: nombre.toLowerCase(),
 			nombre_url: url,
-			precio: Math.abs(precio),
+			precio,
 			categorias: idCategoriasEncontradas,
 			categorias_names: nombresCategoriasEncontradas,
 			relevancia,
@@ -92,7 +93,7 @@ const crearProducto = async (req, res = response) => {
 			marca: buscarMarca._id,
 			marca_name: buscarMarca.nombre,
 			pid: url[0] + nanoid() + url[url.length - 1],
-			descuento: descuento ? Math.abs(descuento) : 0,
+			descuento,
 		});
 
 		await producto.save();
@@ -125,7 +126,7 @@ const crearProducto = async (req, res = response) => {
 const borrarProductoDefinitivamente = async (req, res = response) => {
 	try {
 		const { id } = req.params;
-		const producto = await Producto.findById(id);
+		const producto = await Producto.findOne({ nombre_url: id });
 		if (!producto) {
 			return res.status(404).json({
 				ok: false,
@@ -136,14 +137,29 @@ const borrarProductoDefinitivamente = async (req, res = response) => {
 			producto.detalle_producto
 		);
 
+		let imagenes = null;
 		await producto.remove();
-		if (detalleProductoId) await detalleProductoId.remove();
+		if (detalleProductoId) {
+			imagenes = detalleProductoId.imagenes;
+			await detalleProductoId.remove();
+		}
 		//TODO: BORRAR IMAGENES de CLOUDINARY
+		if (imagenes) {
+			imagenes.forEach((imagen) => {
+				borrarImagenCloudinary(imagen);
+			});
+		}
 		res.json({
 			ok: true,
 			msg: 'Producto Eliminado Correctamente',
 		});
-	} catch (error) {}
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			ok: false,
+			msg: 'Hubo un error contacta al administrador.',
+		});
+	}
 };
 
 const editarProducto = async (req, res = response) => {
@@ -233,7 +249,7 @@ const editarProducto = async (req, res = response) => {
 			NUEVADATA.nombre_url = url;
 		}
 		if (nuevoPrecio) {
-			NUEVADATA.precio = Math.abs(precio);
+			NUEVADATA.precio = precio;
 		}
 		if (nuevaDescripcion) {
 			NUEVODATADETALLE.descripcion = descripcion;
@@ -261,13 +277,13 @@ const editarProducto = async (req, res = response) => {
 			NUEVADATA.categorias_names = categoriasNames;
 		}
 		if (nuevaRelevancia) {
-			NUEVADATA.relevancia = Math.abs(relevancia);
+			NUEVADATA.relevancia = relevancia;
 		}
 		if (nuevaCantidad) {
 			NUEVADATA.cantidad = Math.abs(cantidad);
 		}
 		if (nuevoDescuento) {
-			NUEVADATA.descuento = Math.abs(descuento);
+			NUEVADATA.descuento = descuento;
 		}
 
 		if (nuevaMarca) {
