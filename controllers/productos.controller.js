@@ -436,6 +436,9 @@ const buscarProductos = async (req, res, mode) => {
 		cantidad,
 		categorias,
 		descuento_min,
+		descuento_max,
+		cantidad_min,
+		cantidad_max,
 		marcas,
 		precio_min,
 		precio_max,
@@ -478,6 +481,15 @@ const buscarProductos = async (req, res, mode) => {
 		}
 		if (descuento_min) {
 			filters.descuento = { $gte: Number(descuento_min) };
+		}
+		if (descuento_max) {
+			filters.descuento = { $lte: Number(descuento_max) };
+		}
+		if (cantidad_min) {
+			filters.cantidad = { $gte: Number(cantidad_min) };
+		}
+		if (cantidad_max) {
+			filters.cantidad = { $lte: Number(cantidad_max) };
 		}
 		if (marcas && marcas.length > 0 && marcas.length <= MAXMARCASFILTER) {
 			filters.marca_name = { $in: marcas };
