@@ -20,6 +20,7 @@ const {
 } = require('../utils/constantes');
 const CompareArray = require('../utils/comparar-arrays');
 const { borrarImagenCloudinary } = require('../helpers/images-functions');
+const { NewHistory } = require('../helpers/historial-functions');
 /*
   TODO: Almacenar nombres en minuscula
 */
@@ -88,6 +89,7 @@ const crearProducto = async (req, res = response) => {
 				msg: 'La marca no existe: ' + marca,
 			});
 		}
+		const pid = url[0] + nanoid();
 		const producto = new Producto({
 			nombre: nombre.toLowerCase(),
 			nombre_url: url,
@@ -99,13 +101,20 @@ const crearProducto = async (req, res = response) => {
 			cantidad: Math.round(cantidad),
 			marca: buscarMarca._id,
 			marca_name: buscarMarca.nombre,
-			pid: url[0] + nanoid() + url[url.length - 1],
+			pid: pid,
 			descuento: Math.round(descuento),
 		});
 
 		await producto.save();
 		await detallesAdicionales.save();
 		console.log('SE AÑADIO PRODUCTO!!', producto);
+		console.log(req.usuarioAuth);
+		NewHistory({
+			tipo: 'Producto creado',
+			usuario: req.usuarioAuth,
+			detalle:
+				'Se añadió el producto: ' + producto.nombre + ' Pid: ' + producto.pid,
+		});
 		res.json({
 			ok: true,
 			producto,
@@ -340,6 +349,11 @@ const editarProducto = async (req, res = response) => {
 			});
 		}
 		console.log('Se actualizo detalle');
+		NewHistory({
+			tipo: 'Producto actualizado',
+			usuario: req.usuarioAuth,
+			detalle: `Se actualizo el producto ${producto.nombre}, pid: ${producto.pid}`,
+		});
 		return res.json({
 			ok: true,
 			msg: 'Producto actualizado con exito',

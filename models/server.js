@@ -18,6 +18,7 @@ class Server {
 			marcas: '/api/marcas',
 			portadas: '/api/portadas',
 			anuncios: '/api/anuncios',
+			historial: '/api/historial',
 			test: '/api/test',
 		};
 		this.connectDb();
@@ -54,6 +55,7 @@ class Server {
 		this.app.use(this.rutas.marcas, require('../routes/marcas.route'));
 		this.app.use(this.rutas.portadas, require('../routes/portadas.route'));
 		this.app.use(this.rutas.anuncios, require('../routes/anuncios.route'));
+		this.app.use(this.rutas.historial, require('../routes/historial.route'));
 		this.app.use(
 			this.rutas.productos_desabilitados,
 			require('../routes/productos_desabilitados.route')
