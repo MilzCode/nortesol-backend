@@ -46,6 +46,13 @@ const crearProducto = async (req, res = response) => {
 					' categorias',
 			});
 		}
+		if (precio < 0 || descuento < 0 || precio < descuento) {
+			return res.status(400).json({
+				ok: false,
+				msg:
+					'El precio o descuento no puede ser menor a 0, ni el precio menor al descuento',
+			});
+		}
 
 		const buscarCategorias = await buscarCategoriasValidas(
 			categorias,
@@ -84,16 +91,16 @@ const crearProducto = async (req, res = response) => {
 		const producto = new Producto({
 			nombre: nombre.toLowerCase(),
 			nombre_url: url,
-			precio,
+			precio: Math.round(precio),
 			categorias: idCategoriasEncontradas,
 			categorias_names: nombresCategoriasEncontradas,
 			relevancia,
 			detalle_producto: detallesAdicionales._id,
-			cantidad: cantidad,
+			cantidad: Math.round(cantidad),
 			marca: buscarMarca._id,
 			marca_name: buscarMarca.nombre,
 			pid: url[0] + nanoid() + url[url.length - 1],
-			descuento,
+			descuento: Math.round(descuento),
 		});
 
 		await producto.save();
@@ -175,6 +182,7 @@ const editarProducto = async (req, res = response) => {
 			marca,
 		} = req.body;
 		const { id } = req.params;
+
 		if (categorias && categorias.length > MAXCATEGORIASPORPRODUCTO) {
 			return res.status(400).json({
 				ok: false,
@@ -182,6 +190,13 @@ const editarProducto = async (req, res = response) => {
 					'El producto no puede tener mas de ' +
 					MAXCATEGORIASPORPRODUCTO +
 					' categorias',
+			});
+		}
+		if (precio < 0 || descuento < 0 || precio < descuento) {
+			return res.status(400).json({
+				ok: false,
+				msg:
+					'El precio o descuento no puede ser menor a 0, ni el precio menor al descuento',
 			});
 		}
 		const productoOriginal = await Producto.findById(id)
@@ -249,7 +264,7 @@ const editarProducto = async (req, res = response) => {
 			NUEVADATA.nombre_url = url;
 		}
 		if (nuevoPrecio) {
-			NUEVADATA.precio = precio;
+			NUEVADATA.precio = Math.round(precio);
 		}
 		if (nuevaDescripcion) {
 			NUEVODATADETALLE.descripcion = descripcion;
@@ -280,10 +295,10 @@ const editarProducto = async (req, res = response) => {
 			NUEVADATA.relevancia = relevancia;
 		}
 		if (nuevaCantidad) {
-			NUEVADATA.cantidad = Math.abs(cantidad);
+			NUEVADATA.cantidad = Math.round(cantidad);
 		}
 		if (nuevoDescuento) {
-			NUEVADATA.descuento = descuento;
+			NUEVADATA.descuento = Math.round(descuento);
 		}
 
 		if (nuevaMarca) {
@@ -427,12 +442,7 @@ const buscarProductos = async (req, res, mode) => {
 		relevancia,
 		find_productos_pids,
 		//
-		sortFechaDesc,
-		sortNombreDesc,
-		sortDescuentoDesc,
-		sortRelevanciaDesc,
-		sortPrecio,
-		sortPrecioDesc,
+		sortQuery,
 	} = req.query;
 	try {
 		//@ingresos que retornan un solo producto
@@ -492,28 +502,20 @@ const buscarProductos = async (req, res, mode) => {
 			page: page,
 			limit: limit,
 		};
-		let productos = [];
-		if (sortFechaDesc) {
-			optionsPagination.sort = { created_at: -1 };
-			productos = await Producto.paginate(filters, optionsPagination);
-		} else if (sortNombreDesc) {
-			optionsPagination.sort = { nombre: -1 };
-			productos = await Producto.paginate(filters, optionsPagination);
-		} else if (sortDescuentoDesc) {
-			optionsPagination.sort = { descuento: -1 };
-			productos = await Producto.paginate(filters, optionsPagination);
-		} else if (sortRelevanciaDesc) {
-			optionsPagination.sort = { relevancia: -1 };
-			productos = await Producto.paginate(filters, optionsPagination);
-		} else if (sortPrecio) {
-			optionsPagination.sort = { precio: 1 };
-			productos = await Producto.paginate(filters, optionsPagination);
-		} else if (sortPrecioDesc) {
-			optionsPagination.sort = { precio: -1 };
-			productos = await Producto.paginate(filters, optionsPagination);
-		} else {
-			productos = await Producto.paginate(filters, optionsPagination);
+
+		if (sortQuery) {
+			const sortQueryJson = JSON.parse(sortQuery);
+			const field = sortQueryJson.field;
+			const sort = sortQueryJson.sort;
+			if (field && sort) {
+				const sortType =
+					sortQueryJson.sort === 'asc' || sortQueryJson.sort === 1 ? 1 : -1;
+
+				optionsPagination.sort = { [field]: sortType };
+			}
 		}
+		const productos = await Producto.paginate(filters, optionsPagination);
+
 		return res.json({ ok: true, productos });
 	} catch (err) {
 		console.log(err);
