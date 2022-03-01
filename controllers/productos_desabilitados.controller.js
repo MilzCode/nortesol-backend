@@ -20,13 +20,14 @@ const {
 } = require('../utils/constantes');
 const CompareArray = require('../utils/comparar-arrays');
 const { borrarImagenCloudinary } = require('../helpers/images-functions');
+const { NewHistory } = require('../helpers/historial-functions');
 /*
   TODO: Almacenar nombres en minuscula
 */
 
 const crearProducto = async (req, res = response) => {
 	try {
-		const {
+		let {
 			nombre,
 			precio,
 			descripcion,
@@ -46,6 +47,7 @@ const crearProducto = async (req, res = response) => {
 					' categorias',
 			});
 		}
+		categorias.sort();
 		if (precio < 0 || descuento < 0 || precio < descuento) {
 			return res.status(400).json({
 				ok: false,
@@ -88,6 +90,7 @@ const crearProducto = async (req, res = response) => {
 				msg: 'La marca no existe: ' + marca,
 			});
 		}
+		const pid = url[0] + nanoid();
 		const producto = new Producto({
 			nombre: nombre.toLowerCase(),
 			nombre_url: url,
@@ -99,13 +102,20 @@ const crearProducto = async (req, res = response) => {
 			cantidad: Math.round(cantidad),
 			marca: buscarMarca._id,
 			marca_name: buscarMarca.nombre,
-			pid: url[0] + nanoid() + url[url.length - 1],
+			pid: pid,
 			descuento: Math.round(descuento),
 		});
 
 		await producto.save();
 		await detallesAdicionales.save();
 		console.log('SE AÑADIO PRODUCTO!!', producto);
+		console.log(req.usuarioAuth);
+		NewHistory({
+			tipo: 'Producto creado',
+			usuario: req.usuarioAuth,
+			detalle:
+				'Se añadió el producto: ' + producto.nombre + ' Pid: ' + producto.pid,
+		});
 		res.json({
 			ok: true,
 			producto,
@@ -192,6 +202,7 @@ const editarProducto = async (req, res = response) => {
 					' categorias',
 			});
 		}
+		categorias.sort();
 		if (precio < 0 || descuento < 0 || precio < descuento) {
 			return res.status(400).json({
 				ok: false,
@@ -284,11 +295,14 @@ const editarProducto = async (req, res = response) => {
 						  buscarCategorias.categorias,
 				});
 			}
+
 			let categoriasNames = [];
-			NUEVADATA.categorias = buscarCategorias.categorias.map((categ) => {
+			const categoriasIds = buscarCategorias.categorias.map((categ) => {
 				categoriasNames.push(categ.nombre);
 				return categ._id;
 			});
+
+			NUEVADATA.categorias = categoriasIds;
 			NUEVADATA.categorias_names = categoriasNames;
 		}
 		if (nuevaRelevancia) {
@@ -340,6 +354,11 @@ const editarProducto = async (req, res = response) => {
 			});
 		}
 		console.log('Se actualizo detalle');
+		NewHistory({
+			tipo: 'Producto actualizado',
+			usuario: req.usuarioAuth,
+			detalle: `Se actualizo el producto ${producto.nombre}, pid: ${producto.pid}`,
+		});
 		return res.json({
 			ok: true,
 			msg: 'Producto actualizado con exito',
@@ -442,8 +461,10 @@ const buscarProductos = async (req, res, mode) => {
 		marcas,
 		precio_min,
 		precio_max,
-		relevancia,
+		relevancia_min,
+		relevancia_max,
 		find_productos_pids,
+		populateCategorias,
 		//
 		sortQuery,
 	} = req.query;
@@ -500,12 +521,18 @@ const buscarProductos = async (req, res, mode) => {
 		if (precio_max && precio_max <= PRECIOMAXFILTER) {
 			filters.precio = { $lte: Number(precio_max) };
 		}
-		if (relevancia) {
-			filters.relevancia = { $gte: Number(relevancia) };
+		if (relevancia_min) {
+			// filters.relevancia = { $gte: Number(relevancia) };
+			filters.relevancia = { $gte: Number(relevancia_min) };
+		}
+		if (relevancia_max) {
+			// filters.relevancia = { $gte: Number(relevancia) };
+			filters.relevancia = { $lte: Number(relevancia_max) };
 		}
 		if (find_productos_pids) {
 			filters.pid = { $in: find_productos_pids };
 		}
+
 		//@Fin de revisando los ingresos
 		///////////////////////////////////////////////////////////////
 		const page = Number(req.query.page) || 1;
@@ -525,6 +552,9 @@ const buscarProductos = async (req, res, mode) => {
 
 				optionsPagination.sort = { [field]: sortType };
 			}
+		}
+		if (populateCategorias) {
+			optionsPagination.populate = 'categorias';
 		}
 		const productos = await Producto.paginate(filters, optionsPagination);
 
