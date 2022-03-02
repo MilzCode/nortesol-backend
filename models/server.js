@@ -53,7 +53,7 @@ class Server {
 		this.app.use(
 			cookieSession({
 				name: 'tuto-session',
-				keys: '123',
+				keys: ['123'],
 			})
 		);
 
