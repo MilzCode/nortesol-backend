@@ -49,10 +49,11 @@ class Server {
 				// createParentPath: true,
 			})
 		);
+
 		this.app.use(
 			cookieSession({
 				name: 'tuto-session',
-				keys: ['key1', 'key2'],
+				keys: '123',
 			})
 		);
 

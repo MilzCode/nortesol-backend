@@ -31,7 +31,10 @@ passport.use(
      use the profile info (mainly profile id) to check if the user is registerd in ur db
      If yes select the user and pass him to the done callback
      If not create the user and then select him and pass to callback
-    */
+    */ console.log(
+				'tken',
+				accessToken
+			);
 			console.log(profile);
 			return done(null, profile);
 		}
