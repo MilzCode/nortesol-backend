@@ -1,5 +1,4 @@
 const { Router } = require('express');
-const { v4: uuidv4 } = require('uuid');
 const { check } = require('express-validator');
 const {
 	actualizarImagenProducto,
@@ -11,13 +10,13 @@ const { tieneRol } = require('../middlewares/validar-roles');
 const buscarCategoriasValidas = require('../utils/buscar-categorias-validas');
 const router = Router();
 
-router.get(
-	'/',
+// router.get(
+// 	'/',
 
-	(req, res) => {
-		console.log(uuidv4());
-		return res.json({ msg: 'weeena' });
-	}
-);
+// 	(req, res) => {
+// 		console.log(uuidv4());
+// 		return res.json({ msg: 'weeena' });
+// 	}
+// );
 
 module.exports = router;
