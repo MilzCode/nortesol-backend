@@ -3,7 +3,7 @@ const cors = require('cors');
 const { dbConnection } = require('../database/configMongoose');
 const fileUpload = require('express-fileupload');
 const passport = require('passport');
-const cookieSession = require('cookie-session');
+const session = require('express-session');
 require('../middlewares/passport-setup');
 
 class Server {
@@ -51,9 +51,11 @@ class Server {
 		);
 
 		this.app.use(
-			cookieSession({
-				name: 'tuto-session',
-				keys: ['123'],
+			session({
+				secret: 'keyboard cat',
+				resave: false,
+				saveUninitialized: true,
+				cookie: { secure: true },
 			})
 		);
 

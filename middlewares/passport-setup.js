@@ -1,5 +1,6 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const FacebookStrategy = require('passport-facebook').Strategy;
 
 passport.serializeUser(function (user, done) {
 	/*
@@ -31,11 +32,30 @@ passport.use(
      use the profile info (mainly profile id) to check if the user is registerd in ur db
      If yes select the user and pass him to the done callback
      If not create the user and then select him and pass to callback
-    */ console.log(
-				'tken',
-				accessToken
-			);
+    */
+
+			return done(null, profile);
+		}
+	)
+);
+
+passport.use(
+	new FacebookStrategy(
+		{
+			clientID: process.env.FACEBOOK_ID,
+			clientSecret: process.env.FACEBOOK_SECRET,
+			callbackURL: 'http://localhost:8080/api/auth/facebook/callback',
+			profileFields: ['id', 'displayName', 'photos', 'email'],
+		},
+		function (accessToken, refreshToken, profile, done) {
+			/*
+	 use the profile info (mainly profile id) to check if the user is registerd in ur db
+	 If yes select the user and pass him to the done callback
+	 If not create the user and then select him and pass to callback
+	*/
+
 			console.log(profile);
+
 			return done(null, profile);
 		}
 	)

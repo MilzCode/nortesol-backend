@@ -448,6 +448,8 @@ const buscarProductoNombre_url = async (req, res, { nombre_url }) => {
  * Este metodo se encarga de retornar productos de forma paginada
  */
 const buscarProductos = async (req, res, mode) => {
+	
+
 	let {
 		nombre_url,
 		id,

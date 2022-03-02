@@ -43,6 +43,18 @@ const ingresar = async (req, res) => {
 	}
 };
 
+const loginRRSS = (req, res, next) => {
+	console.log(req);
+	return res.redirect('http://localhost:3001');
+};
+
+const failLogin = (req, res) => {
+	return res.status(500).json({
+		ok: false,
+		msg: 'Ha ocurrido un error al iniciar sesión',
+	});
+};
+
 const validarToken = (req, res, next) => {
 	//si llega a este punto deberia estar todo validado
 	return res.json({
@@ -50,4 +62,4 @@ const validarToken = (req, res, next) => {
 	});
 };
 
-module.exports = { ingresar, validarToken };
+module.exports = { ingresar, validarToken, failLogin, loginRRSS };
