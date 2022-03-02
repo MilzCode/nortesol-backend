@@ -2,6 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const { dbConnection } = require('../database/configMongoose');
 const fileUpload = require('express-fileupload');
+const passport = require('passport');
+const cookieSession = require('cookie-session');
+require('../middlewares/passport-setup');
 
 class Server {
 	constructor() {
@@ -35,6 +38,8 @@ class Server {
 		this.app.use(cors());
 		//Lectura y parseo body
 		this.app.use(express.json());
+		// parse application/x-www-form-urlencoded
+		// this.app.use(express.urlencoded({ extended: false }));
 		// File Upload
 		this.app.use(
 			fileUpload({
@@ -44,6 +49,16 @@ class Server {
 				// createParentPath: true,
 			})
 		);
+		this.app.use(
+			cookieSession({
+				name: 'tuto-session',
+				keys: ['key1', 'key2'],
+			})
+		);
+
+		// Initializes passport and passport sessions
+		this.app.use(passport.initialize());
+		this.app.use(passport.session());
 	}
 
 	routes() {
