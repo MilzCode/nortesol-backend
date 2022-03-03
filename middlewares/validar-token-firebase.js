@@ -22,7 +22,7 @@ const verifyTokenFirebase = async (token) => {
 };
 
 const validarTokenFirebase = async (req, res = response, next) => {
-	const token = req.header('x-token');
+	const token = req.header('fb-token');
 	if (!token) {
 		return res.status(401).json({
 			ok: false,
@@ -36,6 +36,7 @@ const validarTokenFirebase = async (req, res = response, next) => {
 			msg: 'Token no valido',
 		});
 	}
+	req.usuarioData = data.data;
 	next();
 };
 

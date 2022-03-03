@@ -38,7 +38,35 @@ const ingresar = async (req, res) => {
 		console.log(error);
 		return res.status(500).json({
 			ok: false,
-			msg: 'Error inesperado al crear pedido, consulte con el administrador',
+			msg:
+				'Error inesperado al intentar ingresar, consulte con el administrador',
+		});
+	}
+};
+const ingresarFirebase = async (req, res) => {
+	try {
+		const { email } = req.usuarioData;
+
+		const usuarioDB = await Usuario.findOne({ email });
+		if (!usuarioDB) {
+			return res.status(400).json({
+				ok: false,
+				msg: 'El usuario o password son incorrectos',
+			});
+		}
+
+		const token = await generarJWT(usuarioDB._id);
+
+		res.json({
+			usuarioDB,
+			token,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			ok: false,
+			msg:
+				'Error inesperado al intentar ingresar, consulte con el administrador',
 		});
 	}
 };
@@ -50,4 +78,4 @@ const validarToken = (req, res, next) => {
 	});
 };
 
-module.exports = { ingresar, validarToken };
+module.exports = { ingresar, validarToken, ingresarFirebase };
