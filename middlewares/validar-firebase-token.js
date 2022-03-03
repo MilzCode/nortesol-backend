@@ -1,8 +1,7 @@
 const { default: axios } = require('axios');
 const { response } = require('express');
-const GetAccessTokenFacebook = require('../utils/access-token-facebook');
-const { OAuth2Client } = require('google-auth-library');
-const Firebase = require('../Firebase');
+const GetAccessTokenFacebook = require('../helpers/access-token-facebook');
+const googleVerify = require('../helpers/google-verify');
 
 const validarFirebaseToken = async (req, res = response, next) => {
 	const tipo = req.header('x-tipo');
@@ -39,8 +38,8 @@ const validarFirebaseToken = async (req, res = response, next) => {
 	if (tipo === 'google') {
 		console.log('tipo: google');
 		try {
-			const decodeValue = await Firebase.auth().verifyIdToken(token);
-			console.log('decodeValue: ', decodeValue);
+			const data = await googleVerify(token);
+			console.log(data);
 		} catch (error) {
 			console.log(error);
 		}
