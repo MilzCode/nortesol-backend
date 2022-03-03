@@ -7,4 +7,11 @@
 // 	),
 // });
 
+
+/*
+Con esta variable tambien podemos validar tokens de firebase
+const decodeValue = await admin.auth().verifyIdToken(token);
+console.log('decodeValue: ', decodeValue);
+*/
+
 // module.exports = admin;
