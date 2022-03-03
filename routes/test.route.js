@@ -6,8 +6,8 @@ const {
 const { validarExtensiones } = require('../middlewares/validar-archivo');
 const { validarCampos } = require('../middlewares/validar-campos');
 const {
-	validarFirebaseToken,
-} = require('../middlewares/validar-firebase-token');
+	validarTokenFirebase,
+} = require('../middlewares/validar-token-firebase');
 const { validarJWT } = require('../middlewares/validar-jwt');
 const { tieneRol } = require('../middlewares/validar-roles');
 const buscarCategoriasValidas = require('../utils/buscar-categorias-validas');
@@ -15,7 +15,7 @@ const router = Router();
 
 router.get(
 	'/',
-	[validarFirebaseToken, validarCampos],
+	[validarTokenFirebase, validarCampos],
 
 	(req, res) => {
 		return res.json({ msg: 'weeena' });
