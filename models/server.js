@@ -2,9 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const { dbConnection } = require('../database/configMongoose');
 const fileUpload = require('express-fileupload');
-const passport = require('passport');
-const session = require('express-session');
-require('../middlewares/passport-setup');
 
 class Server {
 	constructor() {
@@ -49,19 +46,6 @@ class Server {
 				// createParentPath: true,
 			})
 		);
-
-		this.app.use(
-			session({
-				secret: 'keyboard cat',
-				resave: false,
-				saveUninitialized: true,
-				cookie: { secure: true },
-			})
-		);
-
-		// Initializes passport and passport sessions
-		this.app.use(passport.initialize());
-		this.app.use(passport.session());
 	}
 
 	routes() {
