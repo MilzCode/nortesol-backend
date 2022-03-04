@@ -53,10 +53,6 @@ const ProductoSchema = new Schema({
 		type: Number,
 		default: 3,
 	},
-	detalle_producto: {
-		type: Schema.Types.ObjectId,
-		ref: 'DetalleProducto',
-	},
 	marca: {
 		type: Schema.Types.ObjectId,
 		ref: 'Marca',

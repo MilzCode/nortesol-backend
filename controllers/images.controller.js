@@ -44,13 +44,13 @@ const actualizarImagenProducto = async (req, res = response) => {
 			});
 		}
 
-		const idDetalleProducto = producto.detalle_producto;
+		const pidProducto = producto.pid;
 		let detalleProducto = null;
 
-		if (idDetalleProducto) {
-			detalleProducto = await DetalleProducto.findById(idDetalleProducto);
+		if (pidProducto) {
+			detalleProducto = await DetalleProducto.findOne({ pid: pidProducto });
 			if (!detalleProducto) {
-				console.log('NO SE ENCONTRO DETALLE PRODUCTO!', idDetalleProducto);
+				console.log('NO SE ENCONTRO DETALLE PRODUCTO!', pidProducto);
 				return res.status(400).json({
 					ok: false,
 					msg: 'No se encuentra detalle del producto',

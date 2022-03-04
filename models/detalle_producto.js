@@ -10,12 +10,16 @@ const DetalleProductoSchema = new Schema({
 		type: String,
 		default: '',
 	},
+	pid: {
+		type: String,
+		default: '',
+	},
 	imagenes: {
 		type: [String],
 		validate: function (value) {
 			return value.length <= MAXIMAGENESPORPRODUCTO;
 		},
-	}
+	},
 });
 
 DetalleProductoSchema.method('toJSON', function () {

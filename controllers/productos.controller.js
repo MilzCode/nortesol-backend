@@ -76,9 +76,6 @@ const crearProducto = async (req, res = response) => {
 			return categ._id;
 		});
 
-		const detallesAdicionales = new DetalleProducto({
-			descripcion,
-		});
 		let buscarMarca = null;
 		if (!marca) {
 			marca = 'otras';
@@ -101,6 +98,10 @@ const crearProducto = async (req, res = response) => {
 			});
 		}
 		const pid = url[0] + nanoid();
+		const detallesAdicionales = new DetalleProducto({
+			descripcion,
+			pid,
+		});
 		const producto = new Producto({
 			nombre: nombre.toLowerCase(),
 			nombre_url: url,
@@ -108,7 +109,6 @@ const crearProducto = async (req, res = response) => {
 			categorias: idCategoriasEncontradas,
 			categorias_names: nombresCategoriasEncontradas,
 			relevancia,
-			detalle_producto: detallesAdicionales._id,
 			cantidad: Math.round(cantidad),
 			marca: buscarMarca._id,
 			marca_name: buscarMarca.nombre,
@@ -131,7 +131,7 @@ const crearProducto = async (req, res = response) => {
 			ok: true,
 			producto,
 			msg: 'Producto Añadido Correctamente',
-			detalle_producto: detallesAdicionales._id,
+			detalle_producto: detallesAdicionales,
 		});
 	} catch (error) {
 		console.log(error);
@@ -161,9 +161,8 @@ const borrarProductoDefinitivamente = async (req, res = response) => {
 				msg: 'No se encontro el producto',
 			});
 		}
-		const detalleProductoId = await DetalleProducto.findById(
-			producto.detalle_producto
-		);
+		const pid = producto.pid;
+		const detalleProductoId = await DetalleProducto.findOne({ pid });
 
 		let imagenes = null;
 		await producto.remove();
@@ -221,9 +220,10 @@ const editarProducto = async (req, res = response) => {
 					'El precio o descuento no puede ser menor a 0, ni el precio menor al descuento',
 			});
 		}
-		const productoOriginal = await Producto.findById(id)
-			.populate('categorias', 'nombre')
-			.populate('detalle_producto');
+		const productoOriginal = await Producto.findById(id).populate(
+			'categorias',
+			'nombre'
+		);
 		let nuevoNombre = false;
 		let nuevoPrecio = false;
 		let nuevaDescripcion = false;
@@ -366,17 +366,13 @@ const editarProducto = async (req, res = response) => {
 			});
 		}
 		let detalle_producto;
-		if (producto.detalle_producto) {
-			const idDetalleProducto = productoOriginal.detalle_producto._id;
-			detalle_producto = await DetalleProducto.findByIdAndUpdate(
-				idDetalleProducto,
+		if (productoOriginal.pid) {
+			const pidProductoOriginal = productoOriginal.pid;
+			detalle_producto = await DetalleProducto.findOneAndUpdate(
+				{ pid: pidProductoOriginal },
 				NUEVODATADETALLE,
 				{ new: true }
 			);
-		} else {
-			detalle_producto = await DetalleProducto.create(NUEVODATADETALLE);
-			producto.detalle_producto = detalle_producto._id;
-			producto.save();
 		}
 
 		if (!detalle_producto) {
@@ -386,7 +382,6 @@ const editarProducto = async (req, res = response) => {
 					'Se actualizo el producto pero no se pudo actualizar el detalle del producto',
 			});
 		}
-		console.log('Se actualizo detalle');
 		NewHistory({
 			tipo: 'Producto actualizado',
 			usuario: req.usuarioAuth,
@@ -420,9 +415,7 @@ const editarProducto = async (req, res = response) => {
  */
 const buscarProductoId = async (req, res, { id }) => {
 	try {
-		console.log(id);
 		const producto = await Producto.findById(id)
-			.populate('detalle_producto', 'descripcion imagenes')
 			.populate('categorias', 'nombre')
 			.populate('marca', 'nombre');
 
@@ -432,10 +425,13 @@ const buscarProductoId = async (req, res, { id }) => {
 				msg: 'No se encontro id producto',
 			});
 		}
+		const pid = producto.pid;
+		const detalle_producto = await DetalleProducto.findOne({ pid });
 
 		res.json({
 			ok: true,
 			productos: { docs: [producto], page: 1, totalDocs: 1, totalPages: 1 },
+			detalle_producto,
 		});
 	} catch (error) {
 		console.log(error);
@@ -453,7 +449,6 @@ const buscarProductoNombre_url = async (req, res, { nombre_url }) => {
 		const producto = await Producto.findOne({
 			nombre_url,
 		})
-			.populate('detalle_producto', 'descripcion imagenes cantidad')
 			.populate('categorias', 'nombre')
 			.populate('marca', 'nombre');
 
@@ -463,10 +458,13 @@ const buscarProductoNombre_url = async (req, res, { nombre_url }) => {
 				msg: 'No se encontro nombre_url de producto',
 			});
 		}
+		const pid = producto.pid;
+		const detalle_producto = await DetalleProducto.findOne({ pid });
 
 		res.json({
 			ok: true,
 			productos: { docs: [producto], page: 1, totalDocs: 1, totalPages: 1 },
+			detalle_producto,
 		});
 	} catch (error) {
 		console.log(error);

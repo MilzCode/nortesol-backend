@@ -1,5 +1,8 @@
 const Producto = require('../models/producto');
 const ProductoDes = require('../models/producto_desabilitado');
+const DetalleProducto = require('../models/detalle_producto');
+const ObjectId = require('mongodb').ObjectId;
+const setNewFilter = require('../utils/crear-filtro-mongo');
 const Marca = require('../models/marca');
 const { nanoid } = require('nanoid');
 const Categoria = require('../models/categoria');
@@ -31,6 +34,7 @@ const insertarProductos = async (req, res) => {
 		let todoOk = true;
 		let tipoError = 'producto';
 		let newProductos = [];
+		let newDetalles = [];
 
 		//validando entradas
 		for (let i = 0; i < productos.length; i++) {
@@ -85,17 +89,30 @@ const insertarProductos = async (req, res) => {
 					pid,
 					nombre_url,
 				});
+				newDetalles.push({ descripcion, pid });
 			}
 		}
 		if (!todoOk) {
 			return res.status(400).json({
 				ok: false,
-				msg: 'Error en algunos productos',
+				msg: 'Error en algunos productos, no se han insertado',
 				tipoError,
 			});
 		}
 		//insertando productos
-		await ProductoDes.insertMany(newProductos);
+		const productoIngresado = (await ProductoDes.insertMany(newProductos))[0];
+		if (productoIngresado) {
+			try {
+				await DetalleProducto.insertMany(newDetalles);
+			} catch (error) {
+				console.log(error);
+				return res.json({
+					ok: true,
+					msg:
+						'Ingreso de productos con exito, pero no se pudieron ingresar los detalles',
+				});
+			}
+		}
 		return res.json({ ok: true, msg: 'Ingreso de productos con exito' });
 	} catch (error) {
 		console.log(error);
@@ -119,86 +136,6 @@ const habilitarProductos = async (req, res) => {
 		let productos = null;
 		let newFilter = {};
 		if (isFiltered) {
-			const setNewFilter = ({
-				busqueda,
-				marcas,
-				categorias,
-				precio_min,
-				precio_max,
-				descuento_min,
-				descuento_max,
-				cantidad_min,
-				cantidad_max,
-				relevancia_min,
-				relevancia_max,
-				porcentaje_descuento_min,
-				porcentaje_descuento_max,
-			}) => {
-				let newFilter = {};
-				if (busqueda) {
-					if (busqueda.length > MAXTEXTBUSQUEDAFILTER) {
-						busqueda = busqueda.substring(0, MAXTEXTBUSQUEDAFILTER);
-					}
-					if (busqueda.length > 3) {
-						busqueda = busqueda.slice(0, -3);
-					}
-					const busquedaRegex = new RegExp(busqueda, 'i');
-					newFilter.nombre = busquedaRegex;
-				}
-
-				if (
-					categorias &&
-					categorias.length > 0 &&
-					categorias.length <= MAXCATEGORIASFILTER
-				) {
-					newFilter.categorias_names = { $in: categorias };
-				}
-				if (descuento_min || descuento_max) {
-					newFilter.descuento = {};
-					descuento_min && (newFilter.descuento.$gte = Number(descuento_min));
-					descuento_max && (newFilter.descuento.$lte = Number(descuento_max));
-				}
-
-				if (cantidad_min || cantidad_max) {
-					newFilter.cantidad = {};
-					cantidad_min && (newFilter.cantidad.$gte = Number(cantidad_min));
-					cantidad_max && (newFilter.cantidad.$lte = Number(cantidad_max));
-				}
-
-				if (marcas && marcas.length > 0 && marcas.length <= MAXMARCASFILTER) {
-					newFilter.marca_name = { $in: marcas };
-				}
-				if (precio_min || precio_max) {
-					newFilter.precio = {};
-					precio_min &&
-						precio_min >= PRECIOMINFILTER &&
-						(newFilter.precio.$gte = Number(precio_min));
-					precio_max &&
-						precio_max <= PRECIOMAXFILTER &&
-						(newFilter.precio.$lte = Number(precio_max));
-				}
-
-				if (relevancia_min || relevancia_max) {
-					newFilter.relevancia = {};
-					relevancia_min &&
-						(newFilter.relevancia.$gte = Number(relevancia_min));
-					relevancia_max &&
-						(newFilter.relevancia.$lte = Number(relevancia_max));
-				}
-
-				if (porcentaje_descuento_min || porcentaje_descuento_max) {
-					newFilter.porcentaje_descuento = {};
-					porcentaje_descuento_min &&
-						(newFilter.porcentaje_descuento.$gte = Number(
-							porcentaje_descuento_min
-						));
-					porcentaje_descuento_max &&
-						(newFilter.porcentaje_descuento.$lte = Number(
-							porcentaje_descuento_max
-						));
-				}
-				return newFilter;
-			};
 			newFilter = setNewFilter(filters);
 			productos = await ProductoDes.find(newFilter).select(
 				'-created_at -_id -__v'
@@ -233,7 +170,6 @@ const habilitarProductos = async (req, res) => {
 };
 const deshabilitarProductos = async (req, res) => {
 	const { ids: productosIds, filters, isFiltered } = req.body;
-
 	if (!productosIds) {
 		return res.status(400).json({
 			ok: false,
@@ -245,86 +181,6 @@ const deshabilitarProductos = async (req, res) => {
 		let productos = null;
 		let newFilter = {};
 		if (isFiltered) {
-			const setNewFilter = ({
-				busqueda,
-				marcas,
-				categorias,
-				precio_min,
-				precio_max,
-				descuento_min,
-				descuento_max,
-				cantidad_min,
-				cantidad_max,
-				relevancia_min,
-				relevancia_max,
-				porcentaje_descuento_min,
-				porcentaje_descuento_max,
-			}) => {
-				let newFilter = {};
-				if (busqueda) {
-					if (busqueda.length > MAXTEXTBUSQUEDAFILTER) {
-						busqueda = busqueda.substring(0, MAXTEXTBUSQUEDAFILTER);
-					}
-					if (busqueda.length > 3) {
-						busqueda = busqueda.slice(0, -3);
-					}
-					const busquedaRegex = new RegExp(busqueda, 'i');
-					newFilter.nombre = busquedaRegex;
-				}
-
-				if (
-					categorias &&
-					categorias.length > 0 &&
-					categorias.length <= MAXCATEGORIASFILTER
-				) {
-					newFilter.categorias_names = { $in: categorias };
-				}
-				if (descuento_min || descuento_max) {
-					newFilter.descuento = {};
-					descuento_min && (newFilter.descuento.$gte = Number(descuento_min));
-					descuento_max && (newFilter.descuento.$lte = Number(descuento_max));
-				}
-
-				if (cantidad_min || cantidad_max) {
-					newFilter.cantidad = {};
-					cantidad_min && (newFilter.cantidad.$gte = Number(cantidad_min));
-					cantidad_max && (newFilter.cantidad.$lte = Number(cantidad_max));
-				}
-
-				if (marcas && marcas.length > 0 && marcas.length <= MAXMARCASFILTER) {
-					newFilter.marca_name = { $in: marcas };
-				}
-				if (precio_min || precio_max) {
-					newFilter.precio = {};
-					precio_min &&
-						precio_min >= PRECIOMINFILTER &&
-						(newFilter.precio.$gte = Number(precio_min));
-					precio_max &&
-						precio_max <= PRECIOMAXFILTER &&
-						(newFilter.precio.$lte = Number(precio_max));
-				}
-
-				if (relevancia_min || relevancia_max) {
-					newFilter.relevancia = {};
-					relevancia_min &&
-						(newFilter.relevancia.$gte = Number(relevancia_min));
-					relevancia_max &&
-						(newFilter.relevancia.$lte = Number(relevancia_max));
-				}
-
-				if (porcentaje_descuento_min || porcentaje_descuento_max) {
-					newFilter.porcentaje_descuento = {};
-					porcentaje_descuento_min &&
-						(newFilter.porcentaje_descuento.$gte = Number(
-							porcentaje_descuento_min
-						));
-					porcentaje_descuento_max &&
-						(newFilter.porcentaje_descuento.$lte = Number(
-							porcentaje_descuento_max
-						));
-				}
-				return newFilter;
-			};
 			newFilter = setNewFilter(filters);
 			productos = await Producto.find(newFilter).select(
 				'-created_at -_id -__v'
@@ -358,8 +214,45 @@ const deshabilitarProductos = async (req, res) => {
 	}
 };
 
+const borrarProductosDes = async (req, res) => {
+	try {
+		const { productosIds, filters, isFiltered } = req.body;
+		if (!productosIds || productosIds.length === 0) {
+			return res.status(400).json({
+				ok: false,
+				msg: 'No se han encontrado productos',
+			});
+		}
+		let productos = null;
+		let newFilter = {};
+		if (isFiltered) {
+			newFilter = setNewFilter(filters);
+			productos = await ProductoDes.find(newFilter);
+		} else {
+			productos = await ProductoDes.find({
+				_id: { $in: productosIds },
+			});
+		}
+		if (!productos) {
+			return res.status(400).json({
+				ok: false,
+				msg: 'No se han encontrado productos',
+			});
+		}
+		await ProductoDes.deleteMany({ _id: { $in: productosIds } });
+		return res.json({ ok: true, msg: 'Productos Borrados' });
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			ok: false,
+			msg: 'Error inesperado al Borrar productos',
+		});
+	}
+};
+
 module.exports = {
 	insertarProductos,
 	habilitarProductos,
 	deshabilitarProductos,
+	borrarProductosDes,
 };
