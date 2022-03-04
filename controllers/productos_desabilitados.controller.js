@@ -242,7 +242,6 @@ const editarProducto = async (req, res = response) => {
 				msg: 'No se encontro el producto',
 			});
 		}
-		const idDetalleProducto = productoOriginal.detalle_producto._id;
 
 		//@Revisando los nuevos ingresos
 		if (nombre && nombre !== productoOriginal.nombre) {
@@ -366,12 +365,20 @@ const editarProducto = async (req, res = response) => {
 				msg: 'No se pudo actualizar el producto',
 			});
 		}
-		console.log('se actualizo producto');
-		const detalle_producto = await DetalleProducto.findByIdAndUpdate(
-			idDetalleProducto,
-			NUEVODATADETALLE,
-			{ new: true }
-		);
+		let detalle_producto;
+		if (producto.detalle_producto) {
+			const idDetalleProducto = productoOriginal.detalle_producto._id;
+			detalle_producto = await DetalleProducto.findByIdAndUpdate(
+				idDetalleProducto,
+				NUEVODATADETALLE,
+				{ new: true }
+			);
+		} else {
+			detalle_producto = await DetalleProducto.create(NUEVODATADETALLE);
+			producto.detalle_producto = detalle_producto._id;
+			producto.save();
+		}
+
 		if (!detalle_producto) {
 			return res.status(400).json({
 				ok: false,
@@ -478,7 +485,6 @@ const buscarProductos = async (req, res, mode) => {
 		nombre_url,
 		id,
 		busqueda,
-		cantidad,
 		categorias,
 		descuento_min,
 		descuento_max,
@@ -513,14 +519,12 @@ const buscarProductos = async (req, res, mode) => {
 				busqueda = busqueda.substring(0, MAXTEXTBUSQUEDAFILTER);
 			}
 			if (busqueda.length > 3) {
-				busqueda = busqueda.slice(0, -2);
+				busqueda = busqueda.slice(0, -3);
 			}
 			const busquedaRegex = new RegExp(busqueda, 'i');
 			filters.nombre = busquedaRegex;
 		}
-		if (cantidad) {
-			filters.cantidad = { $gte: Number(cantidad) };
-		}
+
 		if (
 			categorias &&
 			categorias.length > 0 &&

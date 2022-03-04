@@ -56,7 +56,6 @@ const ProductoDesabilitadoSchema = new Schema({
 	detalle_producto: {
 		type: Schema.Types.ObjectId,
 		ref: 'DetalleProducto',
-		required: [true, 'El detalle del producto es requerido'],
 	},
 	marca: {
 		type: Schema.Types.ObjectId,

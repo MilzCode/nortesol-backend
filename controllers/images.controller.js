@@ -43,14 +43,23 @@ const actualizarImagenProducto = async (req, res = response) => {
 				msg: 'No se encuentra producto',
 			});
 		}
+
 		const idDetalleProducto = producto.detalle_producto;
-		const detalleProducto = await DetalleProducto.findById(idDetalleProducto);
-		if (!detalleProducto) {
-			console.log('NO SE ENCONTRO DETALLE PRODUCTO!', idDetalleProducto);
-			return res.status(400).json({
-				ok: false,
-				msg: 'No se encuentra detalle del producto',
-			});
+		let detalleProducto = null;
+
+		if (idDetalleProducto) {
+			detalleProducto = await DetalleProducto.findById(idDetalleProducto);
+			if (!detalleProducto) {
+				console.log('NO SE ENCONTRO DETALLE PRODUCTO!', idDetalleProducto);
+				return res.status(400).json({
+					ok: false,
+					msg: 'No se encuentra detalle del producto',
+				});
+			}
+		} else {
+			detalleProducto = new DetalleProducto.create();
+			producto.detalle_producto = detalleProducto._id;
+			await producto.save();
 		}
 
 		//Limpiar imagenes previas si existen
