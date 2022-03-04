@@ -21,6 +21,7 @@ const {
 const CompareArray = require('../utils/comparar-arrays');
 const { borrarImagenCloudinary } = require('../helpers/images-functions');
 const { NewHistory } = require('../helpers/historial-functions');
+const { CalcularDescuento } = require('../utils/calcular-descuento');
 /*
   TODO: Almacenar nombres en minuscula
 */
@@ -35,7 +36,7 @@ const crearProducto = async (req, res = response) => {
 			relevancia,
 			cantidad,
 			marca,
-			descuento,
+			porcentaje_descuento,
 		} = req.body;
 		const url = urlStyle(nombre) + '-' + nanoid();
 		if (categorias.length > MAXCATEGORIASPORPRODUCTO) {
@@ -48,7 +49,7 @@ const crearProducto = async (req, res = response) => {
 			});
 		}
 		categorias.sort();
-		if (precio < 0 || descuento < 0 || precio < descuento) {
+		if (precio < 0 || porcentaje_descuento < 0 || porcentaje_descuento > 100) {
 			return res.status(400).json({
 				ok: false,
 				msg:
@@ -90,6 +91,15 @@ const crearProducto = async (req, res = response) => {
 				msg: 'La marca no existe: ' + marca,
 			});
 		}
+		if (
+			(porcentaje_descuento && porcentaje_descuento > 100) ||
+			porcentaje_descuento < 0
+		) {
+			return res.status(400).json({
+				ok: false,
+				msg: 'El porcentaje de descuento no puede ser mayor a 100 ni menor a 0',
+			});
+		}
 		const pid = url[0] + nanoid();
 		const producto = new Producto({
 			nombre: nombre.toLowerCase(),
@@ -103,7 +113,8 @@ const crearProducto = async (req, res = response) => {
 			marca: buscarMarca._id,
 			marca_name: buscarMarca.nombre,
 			pid: pid,
-			descuento: Math.round(descuento),
+			porcentaje_descuento: Math.floor(porcentaje_descuento),
+			descuento: CalcularDescuento(precio, porcentaje_descuento),
 		});
 
 		await producto.save();
@@ -188,8 +199,8 @@ const editarProducto = async (req, res = response) => {
 			categorias,
 			relevancia,
 			cantidad,
-			descuento,
 			marca,
+			porcentaje_descuento,
 		} = req.body;
 		const { id } = req.params;
 
@@ -203,7 +214,7 @@ const editarProducto = async (req, res = response) => {
 			});
 		}
 		categorias.sort();
-		if (precio < 0 || descuento < 0 || precio < descuento) {
+		if (precio < 0 || porcentaje_descuento < 0 || porcentaje_descuento > 100) {
 			return res.status(400).json({
 				ok: false,
 				msg:
@@ -219,8 +230,8 @@ const editarProducto = async (req, res = response) => {
 		let nuevasCategorias = false;
 		let nuevaRelevancia = false;
 		let nuevaCantidad = false;
-		let nuevoDescuento = false;
 		let nuevaMarca = false;
+		let nuevoPorcentajeDescuento = false;
 
 		let NUEVADATA = {};
 		let NUEVODATADETALLE = {};
@@ -259,12 +270,15 @@ const editarProducto = async (req, res = response) => {
 		if (cantidad && cantidad != productoOriginal.cantidad) {
 			nuevaCantidad = true;
 		}
-		if (descuento && descuento != productoOriginal.descuento) {
-			nuevoDescuento = true;
-		}
 
 		if (marca && marca != productoOriginal.marca) {
 			nuevaMarca = true;
+		}
+		if (
+			porcentaje_descuento &&
+			porcentaje_descuento != productoOriginal.porcentaje_descuento
+		) {
+			nuevoPorcentajeDescuento = true;
 		}
 		//@Fin de revision de nuevos ingresos
 		/////////////////////////////////////////////////////////////////////
@@ -311,9 +325,6 @@ const editarProducto = async (req, res = response) => {
 		if (nuevaCantidad) {
 			NUEVADATA.cantidad = Math.round(cantidad);
 		}
-		if (nuevoDescuento) {
-			NUEVADATA.descuento = Math.round(descuento);
-		}
 
 		if (nuevaMarca) {
 			const buscarMarca = await Marca.findOne({
@@ -327,6 +338,21 @@ const editarProducto = async (req, res = response) => {
 			}
 			NUEVADATA.marca = buscarMarca._id;
 			NUEVADATA.marca_name = buscarMarca.nombre;
+		}
+		if (
+			nuevoPorcentajeDescuento &&
+			porcentaje_descuento >= 0 &&
+			porcentaje_descuento < 100
+		) {
+			NUEVADATA.porcentaje_descuento = Math.floor(porcentaje_descuento);
+			if (!precio) {
+				NUEVADATA.descuento = CalcularDescuento(
+					productoOriginal.precio,
+					porcentaje_descuento
+				);
+			} else {
+				NUEVADATA.descuento = CalcularDescuento(precio, porcentaje_descuento);
+			}
 		}
 		//@Fin de Validacion de ingresos e guardado de nueva data
 		/////////////////////////////////////////////////////////////////////
@@ -448,8 +474,6 @@ const buscarProductoNombre_url = async (req, res, { nombre_url }) => {
  * Este metodo se encarga de retornar productos de forma paginada
  */
 const buscarProductos = async (req, res, mode) => {
-	
-
 	let {
 		nombre_url,
 		id,
@@ -467,6 +491,8 @@ const buscarProductos = async (req, res, mode) => {
 		relevancia_max,
 		find_productos_pids,
 		populateCategorias,
+		porcentaje_descuento_min,
+		porcentaje_descuento_max,
 		//
 		sortQuery,
 	} = req.query;
@@ -502,37 +528,45 @@ const buscarProductos = async (req, res, mode) => {
 		) {
 			filters.categorias_names = { $in: categorias };
 		}
-		if (descuento_min) {
-			filters.descuento = { $gte: Number(descuento_min) };
+		if (descuento_min || descuento_max) {
+			filters.descuento = {};
+			descuento_min && (filters.descuento.$gte = Number(descuento_min));
+			descuento_max && (filters.descuento.$lte = Number(descuento_max));
 		}
-		if (descuento_max) {
-			filters.descuento = { $lte: Number(descuento_max) };
+
+		if (cantidad_min || cantidad_max) {
+			filters.cantidad = {};
+			cantidad_min && (filters.cantidad.$gte = Number(cantidad_min));
+			cantidad_max && (filters.cantidad.$lte = Number(cantidad_max));
 		}
-		if (cantidad_min) {
-			filters.cantidad = { $gte: Number(cantidad_min) };
-		}
-		if (cantidad_max) {
-			filters.cantidad = { $lte: Number(cantidad_max) };
-		}
+
 		if (marcas && marcas.length > 0 && marcas.length <= MAXMARCASFILTER) {
 			filters.marca_name = { $in: marcas };
 		}
-		if (precio_min && precio_min >= PRECIOMINFILTER) {
-			filters.precio = { $gte: Number(precio_min) };
+		if (precio_min || precio_max) {
+			filters.precio = {};
+			precio_min &&
+				precio_min >= PRECIOMINFILTER &&
+				(filters.precio.$gte = Number(precio_min));
+			precio_max &&
+				precio_max <= PRECIOMAXFILTER &&
+				(filters.precio.$lte = Number(precio_max));
 		}
-		if (precio_max && precio_max <= PRECIOMAXFILTER) {
-			filters.precio = { $lte: Number(precio_max) };
-		}
-		if (relevancia_min) {
-			// filters.relevancia = { $gte: Number(relevancia) };
-			filters.relevancia = { $gte: Number(relevancia_min) };
-		}
-		if (relevancia_max) {
-			// filters.relevancia = { $gte: Number(relevancia) };
-			filters.relevancia = { $lte: Number(relevancia_max) };
+
+		if (relevancia_min || relevancia_max) {
+			filters.relevancia = {};
+			relevancia_min && (filters.relevancia.$gte = Number(relevancia_min));
+			relevancia_max && (filters.relevancia.$lte = Number(relevancia_max));
 		}
 		if (find_productos_pids) {
 			filters.pid = { $in: find_productos_pids };
+		}
+		if (porcentaje_descuento_min || porcentaje_descuento_max) {
+			filters.porcentaje_descuento = {};
+			porcentaje_descuento_min &&
+				(filters.porcentaje_descuento.$gte = Number(porcentaje_descuento_min));
+			porcentaje_descuento_max &&
+				(filters.porcentaje_descuento.$lte = Number(porcentaje_descuento_max));
 		}
 
 		//@Fin de revisando los ingresos

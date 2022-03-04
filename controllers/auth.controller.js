@@ -14,13 +14,6 @@ const ingresar = async (req, res) => {
 			});
 		}
 
-		// if (!usuarioDB.estado) {
-		//   return res.status(400).json({
-		//     ok: false,
-		//     msg: "El usuario no esta habilitado",
-		//   });
-		// }
-
 		const validPassword = bcryptjs.compareSync(password, usuarioDB.password);
 		if (!validPassword) {
 			return res.status(400).json({
@@ -31,6 +24,7 @@ const ingresar = async (req, res) => {
 		const token = await generarJWT(usuarioDB._id);
 
 		res.json({
+			ok: true,
 			usuarioDB,
 			token,
 		});
@@ -45,21 +39,40 @@ const ingresar = async (req, res) => {
 };
 const ingresarFirebase = async (req, res) => {
 	try {
-		const { email } = req.usuarioData;
-
-		const usuarioDB = await Usuario.findOne({ email });
+		const { email, name, typeLogin } = req.usuarioData;
+		let usuarioDB = await Usuario.findOne({ email });
+		let newUser = false;
 		if (!usuarioDB) {
-			return res.status(400).json({
-				ok: false,
-				msg: 'El usuario o password son incorrectos',
+			newUser = true;
+			const google = typeLogin === 'google';
+			const facebook = typeLogin === 'facebook';
+			usuarioDB = new Usuario({
+				email,
+				email_original: email,
+				tienepassword: false,
+				password: 'a',
+				google,
+				facebook,
+				rut: '00.000.000-0',
+				rut_original: '//',
+				nombre: name ? name : email,
+				celular: '912345678',
+				region: 'region',
+				ciudad: 'ciudad',
+				direccion: 'direccion',
+				emailVerificado: true,
 			});
+			usuarioDB = await usuarioDB.save();
+			newUser = true;
 		}
 
 		const token = await generarJWT(usuarioDB._id);
 
 		res.json({
+			ok: true,
 			usuarioDB,
 			token,
+			newUser,
 		});
 	} catch (error) {
 		console.log(error);

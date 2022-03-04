@@ -8,9 +8,9 @@ const googleVerify = async (token = '') => {
 			audience: process.env.GOOGLE_CLIENT_ID,
 		});
 
-		console.log(ticket.getPayload());
-		const { name, picture, email, email_verified } = ticket.getPayload();
-		return { nombre: name, img: picture, correo: email, email_verified };
+		// const { name, picture, email, email_verified } = ticket.getPayload();
+		const { email } = ticket.getPayload();
+		return { email };
 	} catch (error) {
 		return null;
 	}

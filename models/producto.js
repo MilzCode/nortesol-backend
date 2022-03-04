@@ -69,6 +69,13 @@ const ProductoSchema = new Schema({
 		type: Number,
 		default: 0,
 	},
+	porcentaje_descuento: {
+		type: Number,
+		default: 0,
+		validate: function (value) {
+			return value <= 100 && value >= 0;
+		},
+	},
 	cantidad: {
 		type: Number,
 		default: 0,

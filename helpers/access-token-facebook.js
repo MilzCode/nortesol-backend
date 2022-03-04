@@ -10,6 +10,7 @@ const GetAccessTokenFacebook = async () => {
 		};
 		const response = await axios.get(url, { params });
 		return response.data.access_token ?? null;
+		
 	} catch (error) {
 		return null;
 	}

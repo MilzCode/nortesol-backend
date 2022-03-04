@@ -72,6 +72,10 @@ const UsuarioSchema = new Schema({
 		type: Boolean,
 		default: false,
 	},
+	facebook: {
+		type: Boolean,
+		default: false,
+	},
 	fechaCreacion: {
 		type: Date,
 		default: Date.now,
