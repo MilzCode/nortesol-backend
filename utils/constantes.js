@@ -1,4 +1,12 @@
-const MAXIMAGENESPORPRODUCTO = 5;
+/*
+
+	Si algunas de estas constantes cambia, seria recomendable que se cambia la version de cada documento que utilice diche constante,
+	y cambiar la funcionaliodad segun la version.
+	ya que es posible que al cambiar un valor esta ya no sea compatible para otros documentos.
+	por ejemplo en MAXIMAGENESPORPRODUCTO
+*/
+
+const MAXIMAGENESPORPRODUCTO = 2;
 const MAXCATEGORIASPORPRODUCTO = 3;
 const MINCARACTERESCONTRASENA = 6;
 //Algunos nombres como "cuadernozaza" pueden coincidir con un mongo id valido, esta llave es para verificar que es un string y no un mongo id.

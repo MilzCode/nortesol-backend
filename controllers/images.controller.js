@@ -62,16 +62,20 @@ const actualizarImagenProducto = async (req, res = response) => {
 			await producto.save();
 		}
 
-		//Limpiar imagenes previas si existen
-		const imagenesPrevias = detalleProducto.imagenes;
-		//no necesitamos que esto sea asincrono.
-		imagenesPrevias.forEach((imagen) => {
-			borrarImagenCloudinary(imagen);
-		});
-		const subirCloudinary = archivos.map((archivo) => {
+		//no es necesesario borrar imagen si overwrite es true y el nombre es fijo
+		// //Limpiar imagenes previas si existen
+		// const imagenesPrevias = detalleProducto.imagenes;
+		// // no necesitamos que esto sea asincrono.
+		// imagenesPrevias.forEach((imagen) => {
+		// 	borrarImagenCloudinary(imagen);
+		// });
+		const subirCloudinary = archivos.map((archivo, i) => {
 			const tempPathFile = archivo.tempFilePath;
-			const respUploadCloudinary = cloudinary.uploader.upload(tempPathFile);
-			return respUploadCloudinary;
+			return cloudinary.uploader.upload(tempPathFile, {
+				public_id: `${pidProducto}_${i}`,
+				resource_type: 'image',
+				overwrite: true,
+			});
 		});
 
 		const esperarSubir = await Promise.all(subirCloudinary);

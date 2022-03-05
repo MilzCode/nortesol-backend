@@ -14,7 +14,9 @@ const {
 	MAXMARCASFILTER,
 	PRECIOMINFILTER,
 	PRECIOMAXFILTER,
+	MAXIMAGENESPORPRODUCTO,
 } = require('../utils/constantes');
+const { borrarImagenCloudinary } = require('../helpers/images-functions');
 
 const insertarProductos = async (req, res) => {
 	try {
@@ -123,9 +125,9 @@ const insertarProductos = async (req, res) => {
 };
 
 const habilitarProductos = async (req, res) => {
-	const { ids: productosIds, filters, isFiltered } = req.body;
+	const { pids, filters, isFiltered } = req.body;
 
-	if (!productosIds) {
+	if (!pids) {
 		return res.status(400).json({
 			ok: false,
 			msg: 'No se han enviado ids de productos',
@@ -142,7 +144,7 @@ const habilitarProductos = async (req, res) => {
 			);
 		} else {
 			productos = await ProductoDes.find({
-				_id: { $in: productosIds },
+				pid: { $in: pids },
 			}).select('-created_at -_id -__v');
 		}
 		if (!productos) {
@@ -156,7 +158,7 @@ const habilitarProductos = async (req, res) => {
 		if (isFiltered) {
 			await ProductoDes.deleteMany(newFilter);
 		} else {
-			await ProductoDes.deleteMany({ _id: { $in: productosIds } });
+			await ProductoDes.deleteMany({ pid: { $in: pids } });
 		}
 		return res.json({ ok: true, msg: 'Productos habilitados' });
 	} catch (error) {
@@ -169,8 +171,8 @@ const habilitarProductos = async (req, res) => {
 	}
 };
 const deshabilitarProductos = async (req, res) => {
-	const { ids: productosIds, filters, isFiltered } = req.body;
-	if (!productosIds) {
+	const { pids, filters, isFiltered } = req.body;
+	if (!pids) {
 		return res.status(400).json({
 			ok: false,
 			msg: 'No se han enviado ids de productos',
@@ -187,7 +189,7 @@ const deshabilitarProductos = async (req, res) => {
 			);
 		} else {
 			productos = await Producto.find({
-				_id: { $in: productosIds },
+				pid: { $in: pids },
 			}).select('-created_at -_id -__v');
 		}
 		if (!productos) {
@@ -201,7 +203,7 @@ const deshabilitarProductos = async (req, res) => {
 		if (isFiltered) {
 			await Producto.deleteMany(newFilter);
 		} else {
-			await Producto.deleteMany({ _id: { $in: productosIds } });
+			await Producto.deleteMany({ pid: { $in: pids } });
 		}
 		return res.json({ ok: true, msg: 'Productos habilitados' });
 	} catch (error) {
@@ -215,23 +217,31 @@ const deshabilitarProductos = async (req, res) => {
 };
 
 const borrarProductosDes = async (req, res) => {
+	let filterPids = null;
+	let productosBorrados = false;
+	let detallesBorrados = false;
+	let imagenesBorradas = false;
 	try {
-		const { productosIds, filters, isFiltered } = req.body;
-		if (!productosIds || productosIds.length === 0) {
+		const { pids, filters, isFiltered } = req.body;
+		if (!pids || pids.length === 0) {
 			return res.status(400).json({
 				ok: false,
 				msg: 'No se han encontrado productos',
 			});
 		}
+
 		let productos = null;
 		let newFilter = {};
+
 		if (isFiltered) {
 			newFilter = setNewFilter(filters);
 			productos = await ProductoDes.find(newFilter);
+			filterPids = productos.map((producto) => producto.pid);
 		} else {
 			productos = await ProductoDes.find({
-				_id: { $in: productosIds },
+				pid: { $in: pids },
 			});
+			filterPids = pids;
 		}
 		if (!productos) {
 			return res.status(400).json({
@@ -239,13 +249,38 @@ const borrarProductosDes = async (req, res) => {
 				msg: 'No se han encontrado productos',
 			});
 		}
-		await ProductoDes.deleteMany({ _id: { $in: productosIds } });
+		const imagenes = (
+			await DetalleProducto.find({
+				pid: { $in: filterPids },
+			})
+		).map((detalle_producto) => detalle_producto.imagenes);
+
+		await ProductoDes.deleteMany({ pid: { $in: filterPids } });
+		productosBorrados = true;
+		await DetalleProducto.deleteMany({ pid: { $in: filterPids } });
+		detallesBorrados = true;
+		try {
+			imagenes.forEach((imagenes_producto) => {
+				imagenes_producto.forEach((imagen) => {
+					borrarImagenCloudinary(imagen);
+				});
+			});
+			imagenesBorradas = true;
+		} catch (error) {
+			console.log(error);
+			console.log('Hubo un error al borrar las imagenes');
+		}
+
 		return res.json({ ok: true, msg: 'Productos Borrados' });
 	} catch (error) {
 		console.log(error);
 		return res.status(500).json({
 			ok: false,
 			msg: 'Error inesperado al Borrar productos',
+			pids: filterPids,
+			productosBorrados,
+			detallesBorrados,
+			imagenesBorradas,
 		});
 	}
 };
