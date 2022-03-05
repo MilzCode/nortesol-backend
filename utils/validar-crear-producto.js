@@ -1,4 +1,5 @@
 const { CalcularDescuento } = require('./calcular-descuento');
+const ObjectId = require('mongodb').ObjectId;
 
 const validarCrearProducto = ({
 	producto,

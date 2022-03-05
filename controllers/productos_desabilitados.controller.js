@@ -5,7 +5,7 @@ const DetalleProducto = require('../models/detalle_producto');
 const Producto = require('../models/producto_desabilitado');
 const ProductoDesabilitado = require('../models/producto');
 const Marca = require('../models/marca');
-const buscarCategoriasValidas = require('../utils/buscar-categorias-validas');
+const Categoria = require('../models/categoria');
 const { urlStyle } = require('../utils/url-style');
 const {
 	MAXCATEGORIASPORPRODUCTO,
@@ -18,7 +18,6 @@ const {
 	MAXMARCASFILTER,
 	MAXTEXTBUSQUEDAFILTER,
 } = require('../utils/constantes');
-const CompareArray = require('../utils/comparar-arrays');
 const { borrarImagenCloudinary } = require('../helpers/images-functions');
 const { NewHistory } = require('../helpers/historial-functions');
 const { CalcularDescuento } = require('../utils/calcular-descuento');
@@ -39,16 +38,15 @@ const crearProducto = async (req, res = response) => {
 			porcentaje_descuento,
 		} = req.body;
 		const url = urlStyle(nombre) + '-' + nanoid();
-		if (categorias.length > MAXCATEGORIASPORPRODUCTO) {
+		if (categorias.length > MAXCATEGORIASPORPRODUCTO || categorias.length < 1) {
 			return res.status(400).json({
 				ok: false,
 				msg:
 					'El producto no puede tener mas de ' +
 					MAXCATEGORIASPORPRODUCTO +
-					' categorias',
+					' categorias o menos de 1',
 			});
 		}
-		categorias.sort();
 		if (precio < 0 || porcentaje_descuento < 0 || porcentaje_descuento > 100) {
 			return res.status(400).json({
 				ok: false,
@@ -57,31 +55,17 @@ const crearProducto = async (req, res = response) => {
 			});
 		}
 
-		const buscarCategorias = await buscarCategoriasValidas(
-			categorias,
-			MAXCATEGORIASPORPRODUCTO
-		);
-		if (!buscarCategorias.ok) {
+		const categoriasEncontradas = await Categoria.find({
+			_id: { $in: categorias },
+		});
+		if (!categoriasEncontradas) {
 			return res.status(400).json({
 				ok: false,
-				msg: buscarCategorias.msg
-					? buscarCategorias.msg
-					: 'Las siguientes categorias no existen: ' +
-					  buscarCategorias.categorias,
+				msg: 'Hay categorias que no existen',
 			});
 		}
-		let nombresCategoriasEncontradas = [];
-		const idCategoriasEncontradas = buscarCategorias.categorias.map((categ) => {
-			nombresCategoriasEncontradas.push(categ.nombre);
-			return categ._id;
-		});
 
-		let buscarMarca = null;
-		if (!marca) {
-			marca = 'otras';
-		} else {
-			buscarMarca = await Marca.findOne({ nombre: marca.toLowerCase() });
-		}
+		const buscarMarca = await Marca.findById(marca);
 		if (!buscarMarca) {
 			return res.status(400).json({
 				ok: false,
@@ -106,12 +90,10 @@ const crearProducto = async (req, res = response) => {
 			nombre: nombre.toLowerCase(),
 			nombre_url: url,
 			precio: Math.round(precio),
-			categorias: idCategoriasEncontradas,
-			categorias_names: nombresCategoriasEncontradas,
+			categorias: categoriasEncontradas.map((categoria) => categoria._id),
 			relevancia,
 			cantidad: Math.round(cantidad),
 			marca: buscarMarca._id,
-			marca_name: buscarMarca.nombre,
 			pid: pid,
 			porcentaje_descuento: Math.floor(porcentaje_descuento),
 			descuento: CalcularDescuento(precio, porcentaje_descuento),
@@ -203,16 +185,15 @@ const editarProducto = async (req, res = response) => {
 		} = req.body;
 		const { id } = req.params;
 
-		if (categorias && categorias.length > MAXCATEGORIASPORPRODUCTO) {
+		if (categorias && categorias.length > MAXCATEGORIASPORPRODUCTO || categorias.length < 1) {
 			return res.status(400).json({
 				ok: false,
 				msg:
 					'El producto no puede tener mas de ' +
 					MAXCATEGORIASPORPRODUCTO +
-					' categorias',
+					' categorias o menos de 1',
 			});
 		}
-		categorias.sort();
 		if (precio < 0 || porcentaje_descuento < 0 || porcentaje_descuento > 100) {
 			return res.status(400).json({
 				ok: false,
@@ -232,7 +213,6 @@ const editarProducto = async (req, res = response) => {
 		let nuevaCantidad = false;
 		let nuevaMarca = false;
 		let nuevoPorcentajeDescuento = false;
-
 		let NUEVADATA = {};
 		let NUEVODATADETALLE = {};
 
@@ -253,14 +233,9 @@ const editarProducto = async (req, res = response) => {
 		if (descripcion && descripcion != productoOriginal.descripcion) {
 			nuevaDescripcion = true;
 		}
-
+		//TODO: validacion más estricta
 		if (categorias && categorias.length > 0) {
-			const categoriasOriginal = productoOriginal.categorias.map(
-				(c) => c.nombre
-			);
-			if (!CompareArray(categoriasOriginal, categorias)) {
-				nuevasCategorias = true;
-			}
+			nuevasCategorias = true;
 		}
 		if (relevancia && relevancia != productoOriginal.relevancia) {
 			nuevaRelevancia = true;
@@ -270,7 +245,9 @@ const editarProducto = async (req, res = response) => {
 			nuevaCantidad = true;
 		}
 
+		//TODO: validacion más estricta
 		if (marca && marca != productoOriginal.marca) {
+			
 			nuevaMarca = true;
 		}
 		if (
@@ -294,29 +271,20 @@ const editarProducto = async (req, res = response) => {
 			NUEVODATADETALLE.descripcion = descripcion;
 		}
 		if (nuevasCategorias) {
-			const buscarCategorias = await buscarCategoriasValidas(
-				categorias,
-				MAXCATEGORIASPORPRODUCTO
-			);
+			const categoriasEncontradas = await Categoria.find({
+				_id: { $in: categorias },
+			});
 
-			if (!buscarCategorias.ok) {
+			if (!categoriasEncontradas) {
 				return res.status(400).json({
 					ok: false,
-					msg: buscarCategorias.msg
-						? buscarCategorias.msg
-						: 'Las siguientes categorias no existen: ' +
-						  buscarCategorias.categorias,
+					msg: 'Hay categorias que no existen',
 				});
 			}
 
-			let categoriasNames = [];
-			const categoriasIds = buscarCategorias.categorias.map((categ) => {
-				categoriasNames.push(categ.nombre);
-				return categ._id;
-			});
-
-			NUEVADATA.categorias = categoriasIds;
-			NUEVADATA.categorias_names = categoriasNames;
+			NUEVADATA.categorias = categoriasEncontradas.map(
+				(categoria) => categoria._id
+			);
 		}
 		if (nuevaRelevancia) {
 			NUEVADATA.relevancia = relevancia;
@@ -326,9 +294,7 @@ const editarProducto = async (req, res = response) => {
 		}
 
 		if (nuevaMarca) {
-			const buscarMarca = await Marca.findOne({
-				nombre: marca.toLowerCase(),
-			});
+			const buscarMarca = await Marca.findById(marca);
 			if (!buscarMarca) {
 				return res.status(400).json({
 					ok: false,
@@ -336,7 +302,6 @@ const editarProducto = async (req, res = response) => {
 				});
 			}
 			NUEVADATA.marca = buscarMarca._id;
-			NUEVADATA.marca_name = buscarMarca.nombre;
 		}
 		if (
 			nuevoPorcentajeDescuento &&
@@ -495,6 +460,7 @@ const buscarProductos = async (req, res, mode) => {
 		relevancia_max,
 		find_productos_pids,
 		populateCategorias,
+		populateMarcas,
 		porcentaje_descuento_min,
 		porcentaje_descuento_max,
 		//
@@ -528,7 +494,7 @@ const buscarProductos = async (req, res, mode) => {
 			categorias.length > 0 &&
 			categorias.length <= MAXCATEGORIASFILTER
 		) {
-			filters.categorias_names = { $in: categorias };
+			filters.categorias = { $in: categorias };
 		}
 		if (descuento_min || descuento_max) {
 			filters.descuento = {};
@@ -543,7 +509,7 @@ const buscarProductos = async (req, res, mode) => {
 		}
 
 		if (marcas && marcas.length > 0 && marcas.length <= MAXMARCASFILTER) {
-			filters.marca_name = { $in: marcas };
+			filters.marca = { $in: marcas };
 		}
 		if (precio_min || precio_max) {
 			filters.precio = {};
@@ -591,8 +557,13 @@ const buscarProductos = async (req, res, mode) => {
 				optionsPagination.sort = { [field]: sortType };
 			}
 		}
+		optionsPagination.populate = '';
+		if (populateMarcas) {
+			optionsPagination.populate = 'marca';
+		}
 		if (populateCategorias) {
-			optionsPagination.populate = 'categorias';
+			populateMarcas && (optionsPagination.populate += ' ');
+			optionsPagination.populate += 'categorias';
 		}
 		const productos = await Producto.paginate(filters, optionsPagination);
 

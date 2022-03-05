@@ -83,9 +83,7 @@ const insertarProductos = async (req, res) => {
 					porcentaje_descuento,
 					descuento,
 					relevancia,
-					marca_name,
 					cantidad,
-					categorias_names,
 					marca: marca_id,
 					categorias: categorias_ids,
 					pid,
@@ -285,9 +283,117 @@ const borrarProductosDes = async (req, res) => {
 	}
 };
 
+const editManyProductos = async (req, res) => {
+	try {
+		const { pids, filters, isFiltered, data } = req.body;
+		if (!data) {
+			return res.status(400).json({
+				ok: false,
+				msg: 'No se han enviado datos',
+			});
+		}
+		const {
+			nombre,
+			precio,
+			porcentaje_descuento,
+			relevancia,
+			categorias,
+			marcas,
+			cantidad,
+		} = data;
+		if (isFiltered) {
+			const newFilter = setNewFilter(filters);
+			await Producto.updateMany(newFilter, {
+				nombre,
+				precio,
+				porcentaje_descuento,
+				relevancia,
+				categorias,
+				marcas,
+				cantidad,
+			});
+		} else {
+			await Producto.updateMany(
+				{ pid: { $in: pids } },
+				{
+					nombre,
+					precio,
+					porcentaje_descuento,
+					relevancia,
+					categorias,
+					marcas,
+					cantidad,
+				}
+			);
+		}
+		return res.json({ ok: true, msg: 'Productos editados' });
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			ok: false,
+			msg: 'Error inesperado al editar productos',
+		});
+	}
+};
+const editManyProductosDes = async (req, res) => {
+	try {
+		const { pids, filters, isFiltered, data } = req.body;
+		if (!data) {
+			return res.status(400).json({
+				ok: false,
+				msg: 'No se han enviado datos',
+			});
+		}
+		const {
+			nombre,
+			precio,
+			porcentaje_descuento,
+			relevancia,
+			categorias,
+			marcas,
+			cantidad,
+		} = data;
+
+		if (isFiltered) {
+			const newFilter = setNewFilter(filters);
+			await ProductoDes.updateMany(newFilter, {
+				nombre,
+				precio,
+				porcentaje_descuento,
+				relevancia,
+				categorias,
+				marcas,
+				cantidad,
+			});
+		} else {
+			await ProductoDes.updateMany(
+				{ pid: { $in: pids } },
+				{
+					nombre,
+					precio,
+					porcentaje_descuento,
+					relevancia,
+					categorias,
+					marcas,
+					cantidad,
+				}
+			);
+		}
+		return res.json({ ok: true, msg: 'Productos editados' });
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			ok: false,
+			msg: 'Error inesperado al editar productos',
+		});
+	}
+};
+
 module.exports = {
 	insertarProductos,
 	habilitarProductos,
 	deshabilitarProductos,
 	borrarProductosDes,
+	editManyProductos,
+	editManyProductosDes,
 };
