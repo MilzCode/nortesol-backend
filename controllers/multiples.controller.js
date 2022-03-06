@@ -386,6 +386,7 @@ const editManyProductos = async (req, res) => {
 const editManyProductosDes = async (req, res) => {
 	try {
 		const { pids, filters, isFiltered, newData } = req.body;
+
 		if (!newData) {
 			return res.status(400).json({
 				ok: false,
@@ -394,13 +395,13 @@ const editManyProductosDes = async (req, res) => {
 		}
 		//validando Datos
 		const productoValido = await validarEditarMultiples({ ...newData });
+
 		if (!productoValido.ok) {
 			return res.status(400).json({
 				ok: false,
 				msg: productoValido.msg,
 			});
 		}
-
 		const {
 			nombre,
 			precio,

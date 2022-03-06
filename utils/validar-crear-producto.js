@@ -1,7 +1,7 @@
 const { CalcularDescuento } = require('./calcular-descuento');
 const Marca = require('../models/marca');
 const Categoria = require('../models/categoria');
-const { MAXRELEVANCIA, MINRELEVANCIA, MAXNOMBRE } = require('./constantes');
+const { MAXRELEVANCIA, MINRELEVANCIA, MAXNOMBRE, MAXCATEGORIASPORPRODUCTO } = require('./constantes');
 
 const ObjectId = require('mongodb').ObjectId;
 
@@ -213,7 +213,7 @@ const validarEditarMultiples = async ({
 			nombre = nombre.trim().toLowerCase();
 		}
 		if (categorias) {
-			if (categorias.length > MAXCATEGORIAS)
+			if (categorias.length > MAXCATEGORIASPORPRODUCTO)
 				return { ok: false, msg: 'La cantidad de categorias es muy grande' };
 
 			const categoriasEncontradas = await Categoria.find({

@@ -18,6 +18,7 @@ const {
 	MAXMARCASFILTER,
 	MAXTEXTBUSQUEDAFILTER,
 } = require('../utils/constantes');
+const CompareArray = require('../utils/comparar-arrays');
 const { borrarImagenCloudinary } = require('../helpers/images-functions');
 const { NewHistory } = require('../helpers/historial-functions');
 const { CalcularDescuento } = require('../utils/calcular-descuento');
