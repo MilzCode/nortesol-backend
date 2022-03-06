@@ -8,6 +8,8 @@ const { nanoid } = require('nanoid');
 const Categoria = require('../models/categoria');
 const validarCrearProducto = require('../utils/validar-crear-producto');
 const { urlStyle } = require('../utils/url-style');
+const { CalcularDescuento } = require('../utils/calcular-descuento');
+
 const {
 	MAXTEXTBUSQUEDAFILTER,
 	MAXCATEGORIASFILTER,
@@ -344,41 +346,51 @@ const editManyProductosDes = async (req, res) => {
 				msg: 'No se han enviado datos',
 			});
 		}
-		const {
-			nombre,
-			precio,
-			porcentaje_descuento,
-			relevancia,
-			categorias,
-			marcas,
-			cantidad,
-		} = data;
+		const { precio, porcentaje_descuento } = data;
 
-		if (isFiltered) {
-			const newFilter = setNewFilter(filters);
-			await ProductoDes.updateMany(newFilter, {
-				nombre,
-				precio,
-				porcentaje_descuento,
-				relevancia,
-				categorias,
-				marcas,
-				cantidad,
-			});
+		//update many productos with calculated descuento = CalcularDescuento("$precio", "$porcentaje_descuento")
+		const newFilter = {};
+		let descuento = 0;
+		if (porcentaje_descuento) {
+			if (precio) {
+				descuento = Math.floor(precio * (porcentaje_descuento / 100));
+			} else {
+				descuento = {
+					$floor: {
+						$multiply: [
+							'$precio',
+							{
+								$divide: [porcentaje_descuento, 100],
+							},
+						],
+					},
+				};
+			}
+		} else if (precio) {
+			descuento = {
+				$floor: {
+					$multiply: [
+						precio,
+						{
+							$divide: ['$porcentaje_descuento', 100],
+						},
+					],
+				},
+			};
 		} else {
-			await ProductoDes.updateMany(
-				{ pid: { $in: pids } },
-				{
-					nombre,
-					precio,
-					porcentaje_descuento,
-					relevancia,
-					categorias,
-					marcas,
-					cantidad,
-				}
-			);
+			descuento = null;
 		}
+		const setProductos = Object.assign(
+			{},
+			precio && { precio },
+			porcentaje_descuento && { porcentaje_descuento },
+			descuento && { descuento }
+		);
+		await ProductoDes.updateMany(newFilter, [
+			{
+				$set: setProductos,
+			},
+		]);
 		return res.json({ ok: true, msg: 'Productos editados' });
 	} catch (error) {
 		console.log(error);
