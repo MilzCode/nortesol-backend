@@ -6,7 +6,10 @@ const setNewFilter = require('../utils/crear-filtro-mongo');
 const Marca = require('../models/marca');
 const { nanoid } = require('nanoid');
 const Categoria = require('../models/categoria');
-const validarCrearProducto = require('../utils/validar-crear-producto');
+const {
+	validarCrearProducto,
+	validarEditarMultiples,
+} = require('../utils/validar-crear-producto');
 const { urlStyle } = require('../utils/url-style');
 const { CalcularDescuento } = require('../utils/calcular-descuento');
 
@@ -294,62 +297,27 @@ const editManyProductos = async (req, res) => {
 				msg: 'No se han enviado datos',
 			});
 		}
+
+		//validando Datos
+		const productoValido = validarEditarMultiples({ ...data });
+
+		if (!productoValido.ok) {
+			return res.status(400).json({
+				ok: false,
+				msg: productoValido.msg,
+			});
+		}
 		const {
 			nombre,
 			precio,
 			porcentaje_descuento,
 			relevancia,
-			categorias,
-			marcas,
+			marca,
 			cantidad,
-		} = data;
-		if (isFiltered) {
-			const newFilter = setNewFilter(filters);
-			await Producto.updateMany(newFilter, {
-				nombre,
-				precio,
-				porcentaje_descuento,
-				relevancia,
-				categorias,
-				marcas,
-				cantidad,
-			});
-		} else {
-			await Producto.updateMany(
-				{ pid: { $in: pids } },
-				{
-					nombre,
-					precio,
-					porcentaje_descuento,
-					relevancia,
-					categorias,
-					marcas,
-					cantidad,
-				}
-			);
-		}
-		return res.json({ ok: true, msg: 'Productos editados' });
-	} catch (error) {
-		console.log(error);
-		return res.status(500).json({
-			ok: false,
-			msg: 'Error inesperado al editar productos',
-		});
-	}
-};
-const editManyProductosDes = async (req, res) => {
-	try {
-		const { pids, filters, isFiltered, data } = req.body;
-		if (!data) {
-			return res.status(400).json({
-				ok: false,
-				msg: 'No se han enviado datos',
-			});
-		}
-		const { precio, porcentaje_descuento } = data;
+			categorias,
+		} = productoValido.producto;
 
-		//update many productos with calculated descuento = CalcularDescuento("$precio", "$porcentaje_descuento")
-		const newFilter = {};
+		//Calculo de descuento
 		let descuento = 0;
 		if (porcentaje_descuento) {
 			if (precio) {
@@ -380,17 +348,129 @@ const editManyProductosDes = async (req, res) => {
 		} else {
 			descuento = null;
 		}
-		const setProductos = Object.assign(
-			{},
-			precio && { precio },
-			porcentaje_descuento && { porcentaje_descuento },
-			descuento && { descuento }
-		);
-		await ProductoDes.updateMany(newFilter, [
-			{
-				$set: setProductos,
-			},
-		]);
+
+		let setProductos = Object.assign({}, descuento && { descuento });
+		setProductos = {
+			...setProductos,
+			nombre,
+			precio,
+			porcentaje_descuento,
+			relevancia,
+			marca,
+			cantidad,
+			categorias,
+		};
+
+		if (isFiltered) {
+			const newFilter = setNewFilter(filters);
+			await ProductoDes.updateMany(newFilter, [
+				{
+					$set: setProductos,
+				},
+			]);
+		} else {
+			await ProductoDes.updateMany({ pid: { $in: pids } }, [
+				{
+					$set: setProductos,
+				},
+			]);
+		}
+		return res.json({ ok: true, msg: 'Productos editados' });
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			ok: false,
+			msg: 'Error inesperado al editar productos',
+		});
+	}
+};
+const editManyProductosDes = async (req, res) => {
+	try {
+		const { pids, filters, isFiltered, data } = req.body;
+		if (!data) {
+			return res.status(400).json({
+				ok: false,
+				msg: 'No se han enviado datos',
+			});
+		}
+
+		//validando Datos
+		const productoValido = validarEditarMultiples({ ...data });
+
+		if (!productoValido.ok) {
+			return res.status(400).json({
+				ok: false,
+				msg: productoValido.msg,
+			});
+		}
+		const {
+			nombre,
+			precio,
+			porcentaje_descuento,
+			relevancia,
+			marca,
+			cantidad,
+			categorias,
+		} = productoValido.producto;
+
+		//Calculo de descuento
+		let descuento = 0;
+		if (porcentaje_descuento) {
+			if (precio) {
+				descuento = Math.floor(precio * (porcentaje_descuento / 100));
+			} else {
+				descuento = {
+					$floor: {
+						$multiply: [
+							'$precio',
+							{
+								$divide: [porcentaje_descuento, 100],
+							},
+						],
+					},
+				};
+			}
+		} else if (precio) {
+			descuento = {
+				$floor: {
+					$multiply: [
+						precio,
+						{
+							$divide: ['$porcentaje_descuento', 100],
+						},
+					],
+				},
+			};
+		} else {
+			descuento = null;
+		}
+
+		let setProductos = Object.assign({}, descuento && { descuento });
+		setProductos = {
+			...setProductos,
+			nombre,
+			precio,
+			porcentaje_descuento,
+			relevancia,
+			marca,
+			cantidad,
+			categorias,
+		};
+
+		if (isFiltered) {
+			const newFilter = setNewFilter(filters);
+			await Producto.updateMany(newFilter, [
+				{
+					$set: setProductos,
+				},
+			]);
+		} else {
+			await Producto.updateMany({ pid: { $in: pids } }, [
+				{
+					$set: setProductos,
+				},
+			]);
+		}
 		return res.json({ ok: true, msg: 'Productos editados' });
 	} catch (error) {
 		console.log(error);

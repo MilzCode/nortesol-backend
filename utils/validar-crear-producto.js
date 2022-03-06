@@ -1,4 +1,8 @@
 const { CalcularDescuento } = require('./calcular-descuento');
+const Marca = require('../models/marca');
+const Categoria = require('../models/categoria');
+const { MAXRELEVANCIA, MINRELEVANCIA, MAXNOMBRE } = require('./constantes');
+
 const ObjectId = require('mongodb').ObjectId;
 
 const validarCrearProducto = ({
@@ -164,4 +168,82 @@ const validarCrearProducto = ({
 	}
 };
 
-module.exports = validarCrearProducto;
+const validarEditarMultiples = async ({
+	nombre,
+	precio,
+	porcentaje_descuento,
+	relevancia,
+	categorias,
+	marca,
+	cantidad,
+}) => {
+	try {
+		if (precio) {
+			if (isNaN(precio)) return { ok: false, msg: 'El precio no es un numero' };
+			precio = Math.round(precio);
+			if (precio <= 0)
+				return { ok: false, msg: 'El precio debe ser mayor a 0' };
+		}
+		if (porcentaje_descuento) {
+			if (isNaN(porcentaje_descuento))
+				return { ok: false, msg: 'El descuento no es un numero' };
+			porcentaje_descuento = Math.floor(porcentaje_descuento);
+			if (porcentaje_descuento < 0 || porcentaje_descuento > 99) {
+				return { ok: false, msg: 'El descuento debe estar entre 0 y 99' };
+			}
+		}
+		if (relevancia) {
+			if (isNaN(relevancia))
+				return { ok: false, msg: 'La relevancia no es un numero' };
+			relevancia = Math.floor(relevancia);
+			if (relevancia > MAXRELEVANCIA || relevancia < MINRELEVANCIA) {
+				return { ok: false, msg: 'La relevancia no esta entre los rangos' };
+			}
+		}
+		if (cantidad) {
+			if (isNaN(cantidad))
+				return { ok: false, msg: 'La cantidad no es un numero' };
+			cantidad = Math.floor(cantidad);
+			if (cantidad < 0)
+				return { ok: false, msg: 'La cantidad no puede ser negativa' };
+		}
+		if (nombre) {
+			if (nombre.length > MAXNOMBRE)
+				return { ok: false, msg: 'El nombre es muy largo' };
+			nombre = nombre.trim().toLowerCase();
+		}
+		if (categorias) {
+			if (categorias.length > MAXCATEGORIAS)
+				return { ok: false, msg: 'La cantidad de categorias es muy grande' };
+
+			const categoriasEncontradas = await Categoria.find({
+				_id: { $in: categorias },
+			});
+			if (categoriasEncontradas.length !== categorias.length) {
+				return { ok: false, msg: 'Las categorias no existen' };
+			}
+			categorias = categoriasEncontradas.map((categoria) => categoria._id);
+		}
+		if (marca) {
+			const marcaEncontrada = await Marca.findOne({ _id: marca });
+			if (!marcaEncontrada) return { ok: false, msg: 'La marca no existe' };
+			marca = marcaEncontrada._id;
+		}
+		return {
+			ok: true,
+			producto: {
+				nombre,
+				precio,
+				porcentaje_descuento,
+				relevancia,
+				marca,
+				cantidad,
+				categorias,
+			},
+		};
+	} catch (error) {
+		return { ok: false, msg: 'Error al intentar leer un campo' };
+	}
+};
+
+module.exports = { validarCrearProducto, validarEditarMultiples };
