@@ -1,3 +1,5 @@
+const { MAXMARCASFILTER, MAXTEXTBUSQUEDAFILTER, MAXCATEGORIASFILTER, PRECIOMINFILTER, PRECIOMAXFILTER } = require("./constantes");
+
 const setNewFilter = ({
 	busqueda,
 	marcas,
@@ -30,7 +32,7 @@ const setNewFilter = ({
 		categorias.length > 0 &&
 		categorias.length <= MAXCATEGORIASFILTER
 	) {
-		newFilter.categorias_names = { $in: categorias };
+		newFilter.categorias = { $in: categorias };
 	}
 	if (descuento_min || descuento_max) {
 		newFilter.descuento = {};
@@ -45,7 +47,7 @@ const setNewFilter = ({
 	}
 
 	if (marcas && marcas.length > 0 && marcas.length <= MAXMARCASFILTER) {
-		newFilter.marca_name = { $in: marcas };
+		newFilter.marca = { $in: marcas };
 	}
 	if (precio_min || precio_max) {
 		newFilter.precio = {};

@@ -290,23 +290,22 @@ const borrarProductosDes = async (req, res) => {
 
 const editManyProductos = async (req, res) => {
 	try {
-		const { pids, filters, isFiltered, data } = req.body;
-		if (!data) {
+		const { pids, filters, isFiltered, newData } = req.body;
+		if (!newData) {
 			return res.status(400).json({
 				ok: false,
 				msg: 'No se han enviado datos',
 			});
 		}
-
 		//validando Datos
-		const productoValido = validarEditarMultiples({ ...data });
-
+		const productoValido = await validarEditarMultiples({ ...newData });
 		if (!productoValido.ok) {
 			return res.status(400).json({
 				ok: false,
 				msg: productoValido.msg,
 			});
 		}
+
 		const {
 			nombre,
 			precio,
@@ -348,28 +347,28 @@ const editManyProductos = async (req, res) => {
 		} else {
 			descuento = null;
 		}
-
-		let setProductos = Object.assign({}, descuento && { descuento });
-		setProductos = {
-			...setProductos,
-			nombre,
-			precio,
-			porcentaje_descuento,
-			relevancia,
-			marca,
-			cantidad,
-			categorias,
-		};
+		const setProductos = Object.assign(
+			{},
+			descuento && { descuento },
+			nombre && { nombre },
+			precio && { precio },
+			porcentaje_descuento && { porcentaje_descuento },
+			relevancia && { relevancia },
+			marca && { marca },
+			(cantidad || cantidad === 0) && { cantidad },
+			categorias && { categorias },
+			{ created_at: new Date() }
+		);
 
 		if (isFiltered) {
 			const newFilter = setNewFilter(filters);
-			await ProductoDes.updateMany(newFilter, [
+			await Producto.updateMany(newFilter, [
 				{
 					$set: setProductos,
 				},
 			]);
 		} else {
-			await ProductoDes.updateMany({ pid: { $in: pids } }, [
+			await Producto.updateMany({ pid: { $in: pids } }, [
 				{
 					$set: setProductos,
 				},
@@ -386,23 +385,22 @@ const editManyProductos = async (req, res) => {
 };
 const editManyProductosDes = async (req, res) => {
 	try {
-		const { pids, filters, isFiltered, data } = req.body;
-		if (!data) {
+		const { pids, filters, isFiltered, newData } = req.body;
+		if (!newData) {
 			return res.status(400).json({
 				ok: false,
 				msg: 'No se han enviado datos',
 			});
 		}
-
 		//validando Datos
-		const productoValido = validarEditarMultiples({ ...data });
-
+		const productoValido = await validarEditarMultiples({ ...newData });
 		if (!productoValido.ok) {
 			return res.status(400).json({
 				ok: false,
 				msg: productoValido.msg,
 			});
 		}
+
 		const {
 			nombre,
 			precio,
@@ -444,28 +442,28 @@ const editManyProductosDes = async (req, res) => {
 		} else {
 			descuento = null;
 		}
-
-		let setProductos = Object.assign({}, descuento && { descuento });
-		setProductos = {
-			...setProductos,
-			nombre,
-			precio,
-			porcentaje_descuento,
-			relevancia,
-			marca,
-			cantidad,
-			categorias,
-		};
+		const setProductos = Object.assign(
+			{},
+			descuento && { descuento },
+			nombre && { nombre },
+			precio && { precio },
+			porcentaje_descuento && { porcentaje_descuento },
+			relevancia && { relevancia },
+			marca && { marca },
+			(cantidad || cantidad === 0) && { cantidad },
+			categorias && { categorias },
+			{ created_at: new Date() }
+		);
 
 		if (isFiltered) {
 			const newFilter = setNewFilter(filters);
-			await Producto.updateMany(newFilter, [
+			await ProductoDes.updateMany(newFilter, [
 				{
 					$set: setProductos,
 				},
 			]);
 		} else {
-			await Producto.updateMany({ pid: { $in: pids } }, [
+			await ProductoDes.updateMany({ pid: { $in: pids } }, [
 				{
 					$set: setProductos,
 				},
