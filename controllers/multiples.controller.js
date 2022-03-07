@@ -1,11 +1,11 @@
 const Producto = require('../models/producto');
 const ProductoDes = require('../models/producto_desabilitado');
 const DetalleProducto = require('../models/detalle_producto');
+const Marca = require('../models/marca');
+const Categoria = require('../models/categoria');
 const ObjectId = require('mongodb').ObjectId;
 const setNewFilter = require('../utils/crear-filtro-mongo');
-const Marca = require('../models/marca');
 const { nanoid } = require('nanoid');
-const Categoria = require('../models/categoria');
 const {
 	validarCrearProducto,
 	validarEditarMultiples,
@@ -22,6 +22,10 @@ const {
 	MAXIMAGENESPORPRODUCTO,
 } = require('../utils/constantes');
 const { borrarImagenCloudinary } = require('../helpers/images-functions');
+const {
+	GetDefaultMarca,
+	GetDefaultCategoria,
+} = require('../helpers/get-defaults');
 
 const insertarProductos = async (req, res) => {
 	try {
@@ -480,6 +484,156 @@ const editManyProductosDes = async (req, res) => {
 	}
 };
 
+const editManyMarcas = async (req, res) => {
+	try {
+		const { newData = [] } = req.body;
+		if (!newData[0]) {
+			return res.status(400).json({
+				ok: false,
+				msg: 'No se han enviado datos',
+			});
+		}
+		const newDataValues = newData.map((data) => data.value);
+		const newDataValuesNorepetidos = newDataValues.every(
+			(value, index, self) => self.indexOf(value) === index
+		);
+		if (!newDataValuesNorepetidos) {
+			return res.status(400).json({
+				ok: false,
+				msg: 'No se permiten nuevos datos repetidos.',
+			});
+		}
+		const newDataExist = await Marca.find({
+			nombre: { $in: newDataValues },
+		});
+		if (newDataExist.length > 0) {
+			return res.status(400).json({
+				ok: false,
+				msg: 'Hay nuevos ingresos que ya existen en la base de datos.',
+			});
+		}
+		const update = newData.map((data) =>
+			Marca.findByIdAndUpdate(data.id, { nombre: data.value })
+		);
+		await Promise.all(update);
+
+		await GetDefaultMarca();
+		return res.json({ ok: true, msg: 'Marcas editadas' });
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			ok: false,
+			msg: 'Error inesperado al editar marcas',
+		});
+	}
+};
+const editManyCategorias = async (req, res) => {
+	try {
+		const { newData = [] } = req.body;
+		if (!newData[0]) {
+			return res.status(400).json({
+				ok: false,
+				msg: 'No se han enviado datos',
+			});
+		}
+		const newDataValues = newData.map((data) => data.value);
+		const newDataValuesNorepetidos = newDataValues.every(
+			(value, index, self) => self.indexOf(value) === index
+		);
+		if (!newDataValuesNorepetidos) {
+			return res.status(400).json({
+				ok: false,
+				msg: 'No se permiten nuevos datos repetidos.',
+			});
+		}
+		const newDataExist = await Categoria.find({
+			nombre: { $in: newDataValues },
+		});
+		if (newDataExist.length > 0) {
+			return res.status(400).json({
+				ok: false,
+				msg: 'Hay nuevos ingresos que ya existen en la base de datos.',
+			});
+		}
+		const update = newData.map((data) =>
+			Categoria.findByIdAndUpdate(data.id, { nombre: data.value })
+		);
+		await Promise.all(update);
+
+		await GetDefaultCategoria();
+		return res.json({ ok: true, msg: 'Marcas editadas' });
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			ok: false,
+			msg: 'Error inesperado al editar marcas',
+		});
+	}
+};
+
+const borrarManyMarcas = async (req, res) => {
+	const { ids = [] } = req.body;
+	try {
+		if (ids.length === 0) {
+			return res
+				.status(400)
+				.json({ ok: false, msg: 'No se han enviado datos' });
+		}
+		const defaultData = await GetDefaultMarca();
+		await ProductoDes.updateMany(
+			{ marca: { $in: ids } },
+			{ marca: defaultData._id }
+		);
+		await Producto.updateMany(
+			{ marca: { $in: ids } },
+			{ marca: defaultData._id }
+		);
+		await Marca.deleteMany({ _id: { $in: ids } });
+
+		return res.json({ ok: true, msg: 'Marcas borradas' });
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			ok: false,
+			msg: 'Error inesperado al borrar marcas',
+		});
+	}
+};
+const borrarManyCategorias = async (req, res) => {
+	const { ids = [] } = req.body;
+	try {
+		if (ids.length === 0) {
+			return res
+				.status(400)
+				.json({ ok: false, msg: 'No se han enviado datos' });
+		}
+		const defaultData = await GetDefaultCategoria();
+		//categorias = [categoria1,categoria2,categoria3]
+		await ProductoDes.updateMany(
+			{ categorias: { $in: ids } },
+			{
+				$pull: { categorias: { $in: ids } },
+				$push: { categorias: defaultData._id },
+			}
+		);
+		await Producto.updateMany(
+			{ categorias: { $in: ids } },
+			{
+				$pull: { categorias: { $in: ids } },
+				$push: { categorias: defaultData._id },
+			}
+		);
+		await Categoria.deleteMany({ _id: { $in: ids } });
+		return res.json({ ok: true, msg: 'Categorias borradas' });
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			ok: false,
+			msg: 'Error inesperado al borrar categorias',
+		});
+	}
+};
+
 module.exports = {
 	insertarProductos,
 	habilitarProductos,
@@ -487,4 +641,8 @@ module.exports = {
 	borrarProductosDes,
 	editManyProductos,
 	editManyProductosDes,
+	editManyMarcas,
+	editManyCategorias,
+	borrarManyMarcas,
+	borrarManyCategorias,
 };
