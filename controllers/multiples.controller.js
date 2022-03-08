@@ -512,9 +512,14 @@ const editManyMarcas = async (req, res) => {
 				msg: 'Hay nuevos ingresos que ya existen en la base de datos.',
 			});
 		}
-		const update = newData.map((data) =>
-			Marca.findByIdAndUpdate(data.id, { nombre: data.value })
-		);
+		//excluir marca defualt
+		const defaultDataId = (await GetDefaultMarca())._id.toString();
+		const update = newData.map((data) => {
+			if (defaultDataId == data.id) {
+				return null;
+			}
+			return Marca.findByIdAndUpdate(data.id, { nombre: data.value });
+		});
 		await Promise.all(update);
 
 		await GetDefaultMarca();
@@ -555,11 +560,15 @@ const editManyCategorias = async (req, res) => {
 				msg: 'Hay nuevos ingresos que ya existen en la base de datos.',
 			});
 		}
-		const update = newData.map((data) =>
-			Categoria.findByIdAndUpdate(data.id, { nombre: data.value })
-		);
+		//exluir categorias default
+		const defaultDataId = (await GetDefaultCategoria())._id.toString();
+		const update = newData.map((data) => {
+			if (defaultDataId == data.id) {
+				return null;
+			}
+			return Categoria.findByIdAndUpdate(data.id, { nombre: data.value });
+		});
 		await Promise.all(update);
-
 		await GetDefaultCategoria();
 		return res.json({ ok: true, msg: 'Marcas editadas' });
 	} catch (error) {
@@ -572,14 +581,17 @@ const editManyCategorias = async (req, res) => {
 };
 
 const borrarManyMarcas = async (req, res) => {
-	const { ids = [] } = req.body;
+	let { ids = [] } = req.body;
 	try {
 		if (ids.length === 0) {
 			return res
 				.status(400)
 				.json({ ok: false, msg: 'No se han enviado datos' });
 		}
+		//excluir marca default
 		const defaultData = await GetDefaultMarca();
+		ids = ids.filter((id) => id !== defaultData._id.toString());
+
 		await ProductoDes.updateMany(
 			{ marca: { $in: ids } },
 			{ marca: defaultData._id }
@@ -600,36 +612,103 @@ const borrarManyMarcas = async (req, res) => {
 	}
 };
 const borrarManyCategorias = async (req, res) => {
-	const { ids = [] } = req.body;
+	let { ids = [] } = req.body;
 	try {
 		if (ids.length === 0) {
 			return res
 				.status(400)
 				.json({ ok: false, msg: 'No se han enviado datos' });
 		}
+		//excluir categiria default
 		const defaultData = await GetDefaultCategoria();
-		//categorias = [categoria1,categoria2,categoria3]
+		ids = ids.filter((id) => id !== defaultData._id.toString());
+
 		await ProductoDes.updateMany(
 			{ categorias: { $in: ids } },
 			{
-				$pull: { categorias: { $in: ids } },
-				$push: { categorias: defaultData._id },
+				$set: {
+					'categorias.$': defaultData._id,
+				},
+				arrayFilters: [{ categorias: { $in: ids } }],
 			}
 		);
 		await Producto.updateMany(
 			{ categorias: { $in: ids } },
 			{
-				$pull: { categorias: { $in: ids } },
-				$push: { categorias: defaultData._id },
+				$set: {
+					'categorias.$': defaultData._id,
+				},
+				arrayFilters: [{ categorias: { $in: ids } }],
 			}
 		);
+
 		await Categoria.deleteMany({ _id: { $in: ids } });
+
 		return res.json({ ok: true, msg: 'Categorias borradas' });
 	} catch (error) {
 		console.log(error);
 		return res.status(500).json({
 			ok: false,
 			msg: 'Error inesperado al borrar categorias',
+		});
+	}
+};
+
+const insertarMarcas = async (req, res) => {
+	try {
+		const { data = [] } = req.body;
+		let newData = [];
+		const arrayValues = data.map((data) => {
+			if (data.nombre) {
+				newData.push({ nombre: data.nombre });
+			}
+			return data.nombre;
+		});
+		const marcasExists = await Marca.find({ nombre: { $in: arrayValues } });
+		if (marcasExists && marcasExists.length > 0) {
+			return res.status(400).json({
+				ok: false,
+				msg: 'Hay nuevos ingresos que ya existen en la base de datos.',
+			});
+		}
+
+		await Marca.insertMany(newData);
+		return res.json({ ok: true, msg: 'Marcas insertadas' });
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			ok: false,
+			msg: 'Error inesperado al insertar marcas',
+		});
+	}
+};
+const insertarCategorias = async (req, res) => {
+	try {
+		const { data = [] } = req.body;
+		let newData = [];
+		const arrayValues = data.map((data) => {
+			if (data.nombre) {
+				newData.push({ nombre: data.nombre });
+			}
+			return data.nombre;
+		});
+		const categoriasExists = await Categoria.find({
+			nombre: { $in: arrayValues },
+		});
+		if (categoriasExists && categoriasExists.length > 0) {
+			return res.status(400).json({
+				ok: false,
+				msg: 'Hay nuevos ingresos que ya existen en la base de datos.',
+			});
+		}
+
+		await Categoria.insertMany(newData);
+		return res.json({ ok: true, msg: 'Categorias insertadas' });
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			ok: false,
+			msg: 'Error inesperado al insertar categorias',
 		});
 	}
 };
@@ -645,4 +724,6 @@ module.exports = {
 	editManyCategorias,
 	borrarManyMarcas,
 	borrarManyCategorias,
+	insertarMarcas,
+	insertarCategorias
 };

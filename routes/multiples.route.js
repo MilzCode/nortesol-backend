@@ -10,6 +10,8 @@ const {
 	editManyCategorias,
 	borrarManyMarcas,
 	borrarManyCategorias,
+	insertarMarcas,
+	insertarCategorias,
 } = require('../controllers/multiples.controller');
 
 const router = Router();
@@ -24,4 +26,6 @@ router.put('/marcas', editManyMarcas);
 router.put('/categorias', editManyCategorias);
 router.delete('/marcas', borrarManyMarcas);
 router.delete('/categorias', borrarManyCategorias);
+router.post('/marcas', insertarMarcas);
+router.post('/categorias', insertarCategorias);
 module.exports = router;
