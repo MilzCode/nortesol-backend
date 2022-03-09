@@ -569,7 +569,6 @@ const editManyCategorias = async (req, res) => {
 			return Categoria.findByIdAndUpdate(data.id, { nombre: data.value });
 		});
 		await Promise.all(update);
-		await GetDefaultCategoria();
 		return res.json({ ok: true, msg: 'Marcas editadas' });
 	} catch (error) {
 		console.log(error);
@@ -725,5 +724,5 @@ module.exports = {
 	borrarManyMarcas,
 	borrarManyCategorias,
 	insertarMarcas,
-	insertarCategorias
+	insertarCategorias,
 };
