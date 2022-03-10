@@ -562,6 +562,9 @@ const editManyCategorias = async (req, res) => {
 		}
 		//exluir categorias default
 		const defaultDataId = (await GetDefaultCategoria())._id.toString();
+
+		//en el futuro buscar una forma mejor de realizar esta operación ya que esta es una operación que puede ser muy costosa.
+		//y en caso de algun error sacrificar el acid.
 		const update = newData.map((data) => {
 			if (defaultDataId == data.id) {
 				return null;
