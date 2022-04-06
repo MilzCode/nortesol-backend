@@ -1,0 +1,34 @@
+admintest
+{
+email: test_user_37333242@testuser.com
+pass:qatest539
+
+
+--Credenciales de producción--
+Public Key
+APP_USR-e8292292-a3bf-4688-a3bf-2e52967d084a
+Access Token
+APP_USR-5085996529854166-031001-80a3eb96d23046afd28ca30e9770da5d-1087257519
+Client ID
+5085996529854166
+Client Secret
+4xSbGIQdApofHgGxpa0iUhzseETXm6iM
+
+}
+
+---------------
+{
+    "id": 1101608273,
+    "nickname": "TESTBICGWNMD",
+    "password": "qatest9272",
+    "site_status": "active",
+    "email": "test_user_82686373@testuser.com"
+}
+
+{
+    "id": 1101605506,
+    "nickname": "TETE8222249",
+    "password": "qatest874",
+    "site_status": "active",
+    "email": "test_user_67432707@testuser.com"
+}

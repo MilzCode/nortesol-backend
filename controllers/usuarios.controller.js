@@ -65,20 +65,18 @@ const crearUsuario = async (req, res = response) => {
   - si edita email se debe enviar un email al correo anterior por siacaso.
 
 */
-const editarUsuario = async (req, res = response) => {
+const editarUsuarioYPass = async (req, res = response) => {
 	try {
 		const { id } = req.params;
 
 		const {
 			nombre,
 			rut,
-			email,
 			celular,
 			region,
 			ciudad,
 			direccion,
 			password,
-			password_original,
 		} = req.body;
 
 		let newPassword;
@@ -95,30 +93,12 @@ const editarUsuario = async (req, res = response) => {
 			const salt = await bcryptjs.genSalt();
 			newPassword = await bcryptjs.hash(password, salt);
 		}
-		let usuarioActualizado = {
-			nombre,
-			rut,
-			email,
-			celular,
-			region,
-			ciudad,
-			direccion,
-			password: newPassword,
-		};
 
-		const usuarioDB = await Usuario.findById(id);
-		const validOldPassword = bcryptjs.compareSync(
-			password_original,
-			usuarioDB.password
+		const usuarioActualizado = Object.assign(
+			{ nombre, celular, region, ciudad, direccion },
+			rut && { rut: formatoRut(rut) },
+			password && { password: newPassword }
 		);
-		console.log(password_original);
-
-		if (!validOldPassword) {
-			return res.status(400).json({
-				ok: false,
-				msg: 'La contraseña antigua no es valida',
-			});
-		}
 
 		const usuarioDBUpdate = await Usuario.findByIdAndUpdate(
 			id,
@@ -136,6 +116,51 @@ const editarUsuario = async (req, res = response) => {
 		}
 		if (password) {
 			usuarioActualizado.password = 'actualizada';
+		}
+
+		return res.json({
+			ok: true,
+			msg: 'Usuario actualizado correctamente',
+			datos_actualizados: usuarioActualizado,
+		});
+	} catch (error) {
+		console.log(error);
+		if (error.code === 11000 && error.keyValue.email) {
+			return res.status(400).json({
+				ok: false,
+				msg: 'El correo ya existe',
+			});
+		}
+		return res.status(500).json({
+			ok: false,
+			msg: 'Error inesperado al editar usuario, consulte con el administrador',
+		});
+	}
+};
+const editarUsuario = async (req, res = response) => {
+	try {
+		const { id } = req.params;
+
+		let { nombre, rut, celular, region, ciudad, direccion } = req.body;
+
+		const usuarioActualizado = Object.assign(
+			{ nombre, celular, region, ciudad, direccion },
+			rut && { rut: formatoRut(rut) }
+		);
+
+		const usuarioDBUpdate = await Usuario.findByIdAndUpdate(
+			id,
+			usuarioActualizado,
+			{
+				new: true,
+			}
+		);
+
+		if (!usuarioDBUpdate) {
+			return res.status(404).json({
+				ok: false,
+				msg: 'No existe un usuario con ese ID',
+			});
 		}
 
 		return res.json({
@@ -188,5 +213,6 @@ const verDatosUsuario = async (req, res = response) => {
 module.exports = {
 	crearUsuario,
 	editarUsuario,
+	editarUsuarioYPass,
 	verDatosUsuario,
 };

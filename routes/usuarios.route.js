@@ -4,13 +4,15 @@ const {
 	crearUsuario,
 	editarUsuario,
 	verDatosUsuario,
+	editarUsuarioYPass,
 } = require('../controllers/usuarios.controller');
 const { validarRut } = require('../helpers/validar-rut');
-const { emailExiste } = require('../helpers/db-validators');
+const { emailExiste, esRolValido } = require('../helpers/db-validators');
 const { validarCampos } = require('../middlewares/validar-campos');
 const { MINCARACTERESCONTRASENA } = require('../utils/constantes');
 const { validarJWT } = require('../middlewares/validar-jwt');
 const { esMiIdUrl } = require('../middlewares/validar-mi-id');
+const { tieneRol } = require('../middlewares/validar-roles');
 const router = Router();
 
 /*
@@ -41,10 +43,26 @@ router.put(
 		check('id', 'El id es obligatorio').not().isEmpty(),
 		check('id', 'No es un id valido').isMongoId(),
 		validarJWT,
-		esMiIdUrl('id', 'ADMIN'),
+		// esMiIdUrl('id', 'ADMIN'),
+		esMiIdUrl('id'),
 		validarCampos,
 	],
 	editarUsuario
+);
+
+
+router.put(
+	'/withpass/:id',
+	[
+		check('id', 'El id es obligatorio').not().isEmpty(),
+		check('id', 'No es un id valido').isMongoId(),
+		validarJWT,
+		// esMiIdUrl('id', 'ADMIN'),
+		esMiIdUrl('id'),
+		tieneRol('ADMIN'),
+		validarCampos,
+	],
+	editarUsuarioYPass
 );
 
 /*

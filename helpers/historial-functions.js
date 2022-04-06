@@ -3,16 +3,16 @@ const Historial = require('../models/historial');
 const NewHistory = ({ tipo, usuario, detalle }) => {
 	try {
 		console.log(usuario);
-		let { _id, nombre } = usuario;
-		if (!_id || !nombre) {
+		let { _id, email } = usuario;
+		if (!_id || !email) {
 			console.log('Error al crear historial, no se encontró usuario');
 			_id = '5e63c3a5e4232e4cd0274ac2';
-			nombre = 'Usuario no encontrado';
+			email = 'Usuario no encontrado';
 		}
 		const newHistory = new Historial({
 			tipo,
 			usuario: _id,
-			usuario_name: nombre,
+			usuario_name: email,
 			detalle,
 		});
 		newHistory.save();

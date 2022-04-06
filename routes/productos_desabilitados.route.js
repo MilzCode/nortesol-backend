@@ -52,7 +52,9 @@ router.put(
 	editarProducto
 );
 
-router.get('/', (req, res) => buscarProductos(req, res));
+router.get('/', [validarJWT, tieneRol('ADMIN'), validarCampos], (req, res) =>
+	buscarProductos(req, res)
+);
 
 router.delete(
 	'/:id',

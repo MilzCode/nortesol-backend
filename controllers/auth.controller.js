@@ -55,7 +55,7 @@ const ingresarFirebase = async (req, res) => {
 				facebook,
 				rut: '00.000.000-0',
 				rut_original: '//',
-				nombre: name ? name : email,
+				nombre: name ? name : "Sin nombre",
 				celular: '912345678',
 				region: 'region',
 				ciudad: 'ciudad',
