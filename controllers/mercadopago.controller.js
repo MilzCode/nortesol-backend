@@ -88,6 +88,7 @@ const nuevoPago = async (req, res) => {
 				failure: 'http://localhost:3001',
 				pending: 'http://localhost:3001',
 			},
+			// notification_url: 'http://localhost:3001/api/mercadopago/webhook',
 			auto_return: 'approved',
 			binary_mode: true,
 		};
@@ -126,6 +127,9 @@ const webhookPagoCreado = async (req, res) => {
 			.json({ ok: false, msg: 'Error al recibir notificación.' });
 	}
 };
+
+
+
 module.exports = {
 	nuevoPago,
 };
