@@ -9,16 +9,12 @@ const Categoria = require('../models/categoria');
 const { urlStyle } = require('../utils/url-style');
 const {
 	MAXCATEGORIASPORPRODUCTO,
-	NOMONGOIDKEY_DONOTCHANGE,
-	SEPARADOR,
-	MAXPRODUCTOSCARRITO,
 	PRECIOMAXFILTER,
 	PRECIOMINFILTER,
 	MAXCATEGORIASFILTER,
 	MAXMARCASFILTER,
 	MAXTEXTBUSQUEDAFILTER,
 } = require('../utils/constantes');
-const CompareArray = require('../utils/comparar-arrays');
 const { borrarImagenCloudinary } = require('../helpers/images-functions');
 const { NewHistory } = require('../helpers/historial-functions');
 const { CalcularDescuento } = require('../utils/calcular-descuento');
@@ -186,7 +182,10 @@ const editarProducto = async (req, res = response) => {
 		} = req.body;
 		const { id } = req.params;
 
-		if (categorias && categorias.length > MAXCATEGORIASPORPRODUCTO || categorias.length < 1) {
+		if (
+			(categorias && categorias.length > MAXCATEGORIASPORPRODUCTO) ||
+			categorias.length < 1
+		) {
 			return res.status(400).json({
 				ok: false,
 				msg:
@@ -248,11 +247,10 @@ const editarProducto = async (req, res = response) => {
 
 		//TODO: validacion más estricta
 		if (marca && marca != productoOriginal.marca) {
-			
 			nuevaMarca = true;
 		}
 		if (
-			porcentaje_descuento &&
+			porcentaje_descuento >=0 &&
 			porcentaje_descuento != productoOriginal.porcentaje_descuento
 		) {
 			nuevoPorcentajeDescuento = true;

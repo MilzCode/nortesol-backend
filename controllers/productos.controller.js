@@ -250,7 +250,7 @@ const editarProducto = async (req, res = response) => {
 			nuevaMarca = true;
 		}
 		if (
-			porcentaje_descuento &&
+			porcentaje_descuento >=0 &&
 			porcentaje_descuento != productoOriginal.porcentaje_descuento
 		) {
 			nuevoPorcentajeDescuento = true;
