@@ -10,40 +10,40 @@
  * -usuarioAuth: usuario que esta en el jwt valido.
  */
 
-const estMiIdBody = (idName = "id", ...rolesPermitidos) => {
-  return (req, res = response, next) => {
-    if (rolesPermitidos.includes(req.usuarioAuth.rol)) {
-      return next();
-    }
+const estMiIdBody = (idName = 'id', ...rolesPermitidos) => {
+	return (req, res = response, next) => {
+		if (rolesPermitidos.includes(req.usuarioAuth.rol)) {
+			return next();
+		}
 
-    const idBody = req.body[idName];
-    const idValidarJWT = req.usuarioAuth._id;
+		const idBody = req.body[idName];
+		const idValidarJWT = req.usuarioAuth._id;
 
-    if (idBody != idValidarJWT) {
-      return res.status(401).json({
-        ok: false,
-        msg: "No tienes permiso para acceder a este recurso",
-      });
-    }
-    next();
-  };
+		if (idBody != idValidarJWT) {
+			return res.status(401).json({
+				ok: false,
+				msg: 'No tienes permiso para acceder a este recurso',
+			});
+		}
+		next();
+	};
 };
 
-const esMiIdUrl = (idName = "id", ...rolesPermitidos) => {
-  return (req, res = response, next) => {
-    if (rolesPermitidos.includes(req.usuarioAuth.rol)) {
-      return next();
-    }
-    const idUrl = req.params[idName];
-    const idValidarJWT = req.usuarioAuth._id;
-    if (idUrl != idValidarJWT) {
-      return res.status(401).json({
-        ok: false,
-        msg: "No tienes permiso para acceder a este recurso",
-      });
-    }
-    next();
-  };
+const esMiIdUrl = (idName = 'id', ...rolesPermitidos) => {
+	return (req, res = response, next) => {
+		if (rolesPermitidos.includes(req.usuarioAuth.rol)) {
+			return next();
+		}
+		const idUrl = req.params[idName];
+		const idValidarJWT = req.usuarioAuth._id;
+		if (idUrl != idValidarJWT) {
+			return res.status(401).json({
+				ok: false,
+				msg: 'No tienes permiso para acceder a este recurso',
+			});
+		}
+		next();
+	};
 };
 
 module.exports = { esMiIdUrl, estMiIdBody };
