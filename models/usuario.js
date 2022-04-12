@@ -1,5 +1,6 @@
 const { Schema, model } = require('mongoose');
 const { ROLES } = require('../utils/constantes');
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 /*
 
@@ -115,10 +116,10 @@ UsuarioSchema.methods.toJSON = function () {
 		_id,
 		email_original,
 		rol,
-		fechaCreacion,
 		...usuario
 	} = this.toObject();
 	return { ...usuario, uid: _id };
 };
 
+UsuarioSchema.plugin(mongoosePaginate);
 module.exports = model('Usuario', UsuarioSchema);

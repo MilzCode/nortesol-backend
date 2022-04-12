@@ -1,26 +1,22 @@
 const { Router } = require('express');
 const { check } = require('express-validator');
 const {
-	crearPedido,
 	buscarPedido,
 	pedidosUsuarioId,
+	entregarPedido,
 } = require('../controllers/pedidos.controller');
-const { usuarioExiste } = require('../helpers/db-validators');
 const { validarCampos } = require('../middlewares/validar-campos');
 const { validarJWT } = require('../middlewares/validar-jwt');
-const { estMiIdBody, esMiIdUrl } = require('../middlewares/validar-mi-id');
+const { esMiIdUrl } = require('../middlewares/validar-mi-id');
+const { tieneRol } = require('../middlewares/validar-roles');
 const router = Router();
-
-// router.get("/", (req, res) => {
-//   console.log("hola");
-//   res.json({ msg: "hola" });
-// });
 
 /*
 TODO:
 - esta ruta solo puede acceder el administrador
 */
-router.get('/:idoemail?', buscarPedido);
+router.get('/all', [validarJWT, tieneRol('ADMIN')], buscarPedido);
+router.put('/:idpedido', [validarJWT, tieneRol('ADMIN')], entregarPedido);
 
 router.get(
 	'/mis-pedidos/:idUsuario',

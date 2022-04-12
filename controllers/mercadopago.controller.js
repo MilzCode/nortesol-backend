@@ -82,7 +82,10 @@ const nuevoPago = async (req, res) => {
 				title: nombre,
 				quantity: c,
 				unit_price: precio - precio * (porcentaje_descuento / 100),
-				description: nombre + ' x ' + c,
+				description: JSON.stringify({
+					unit_price_original: precio,
+					porcentaje_descuento,
+				}),
 			};
 		});
 		const payer = {
@@ -120,7 +123,7 @@ const nuevoPago = async (req, res) => {
 			},
 			// notification_url: 'http://localhost:3001/api/mercadopago/webhook',
 			notification_url:
-				'http://f50a-152-172-167-117.ngrok.io/api/mercadopago/webhook',
+				'http://3049-152-172-169-75.ngrok.io/api/mercadopago/webhook',
 			auto_return: 'approved',
 			binary_mode: true,
 		};
@@ -205,6 +208,7 @@ const webhookPagoCreado = async (req, res) => {
 							unit_price: item.unit_price,
 							title: item.title,
 							total_this: item.quantity * item.unit_price,
+							description: JSON.parse(item.description),
 						};
 					});
 
@@ -295,6 +299,7 @@ const webhookPagoCreado = async (req, res) => {
 							unit_price: item.unit_price,
 							title: item.title,
 							total_this: item.quantity * item.unit_price,
+							description: JSON.parse(item.description),
 						};
 					});
 

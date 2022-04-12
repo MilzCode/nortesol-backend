@@ -210,9 +210,49 @@ const verDatosUsuario = async (req, res = response) => {
 	}
 };
 
+const buscarUsuarios = async (req, res = response) => {
+	try {
+		let { rut, nombre, email, celular } = req.query;
+		//@creando filtro
+		let filters = {};
+
+		if (rut) {
+			filters.rut = formatoRut(rut);
+		}
+		if (nombre) {
+			filters.nombre = new RegExp(nombre, 'i');
+		}
+		if (email) {
+			filters.email = email.trim().toLowerCase();
+		}
+		if (celular) {
+			filters.celular = celular.trim();
+		}
+		console.log(filters);
+		//@fin creando filtro
+		const page = Number(req.query.page) || 1;
+		const limit = Math.min(Number(req.query.limit), 99) || 50;
+		let optionsPagination = {
+			page: page,
+			limit: limit,
+			sort: { date: -1 },
+		};
+		const usuarios = await Usuario.paginate(filters, optionsPagination);
+
+		return res.json({ ok: true, usuarios });
+	} catch (error) {
+		console.log({ error });
+		return res.status(500).json({
+			ok: false,
+			msg: 'Error inesperado al buscar usuarios, consulte con el administrador',
+		});
+	}
+};
+
 module.exports = {
 	crearUsuario,
 	editarUsuario,
 	editarUsuarioYPass,
 	verDatosUsuario,
+	buscarUsuarios,
 };

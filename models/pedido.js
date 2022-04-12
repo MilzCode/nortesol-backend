@@ -53,10 +53,6 @@ const PedidoSchema = new Schema({
 		type: Boolean,
 		default: false,
 	},
-	cancelado: {
-		type: Boolean,
-		default: false,
-	},
 
 	ubicacion: {
 		type: {
@@ -100,6 +96,18 @@ const PedidoSchema = new Schema({
 					type: Number,
 					default: 99999999,
 					required: [true, 'El total es requerido'],
+				},
+				description: {
+					type: {
+						unit_price_original: {
+							type: Number,
+							default: 99999999,
+						},
+						porcentaje_descuento: {
+							type: Number,
+							default: 0,
+						},
+					},
 				},
 			},
 		],

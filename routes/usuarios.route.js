@@ -5,6 +5,7 @@ const {
 	editarUsuario,
 	verDatosUsuario,
 	editarUsuarioYPass,
+	buscarUsuarios,
 } = require('../controllers/usuarios.controller');
 const { validarRut } = require('../helpers/validar-rut');
 const { emailExiste, esRolValido } = require('../helpers/db-validators');
@@ -18,8 +19,10 @@ const router = Router();
 /*
   TODO: 
   - Validar que solo el administrador pueda obtener todos los usuarios
+*/
+
+router.get('/all', [validarJWT, tieneRol('ADMIN')], buscarUsuarios);
 /*
- 
 TODO:
 - validar que solo el administrador y el usuario puedan ver los datos del usuario
 */
@@ -49,7 +52,6 @@ router.put(
 	],
 	editarUsuario
 );
-
 
 router.put(
 	'/withpass/:id',

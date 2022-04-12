@@ -16,6 +16,9 @@ const tieneRol = (...roles) => {
 			});
 		}
 		if (!roles.includes(req.usuarioAuth.rol)) {
+			console.log(
+				'Alerta! Intento de acceso restringido. ID: ' + req.usuarioAuth._id
+			);
 			return res.status(401).json({
 				ok: false,
 				msg: 'No tiene permisos para realizar esta accion.',
