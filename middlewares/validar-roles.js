@@ -17,7 +17,9 @@ const tieneRol = (...roles) => {
 		}
 		if (!roles.includes(req.usuarioAuth.rol)) {
 			console.log(
-				'Alerta! Intento de acceso restringido. ID: ' + req.usuarioAuth._id
+				'Alerta! Intento de acceso restringido. ID: ' + req.usuarioAuth._id,
+				'Email: ',
+				req.usuarioAuth.email
 			);
 			return res.status(401).json({
 				ok: false,
