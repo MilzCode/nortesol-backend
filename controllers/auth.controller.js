@@ -14,6 +14,18 @@ const ingresar = async (req, res) => {
 			});
 		}
 
+		// SOLO ADMIN
+		if (usuarioDB.rol !== 'ADMIN') {
+			console.log(
+				'Alerta! Intento de ingreso de usuario no autorizado, usuario: ' +
+					usuarioDB.email
+			);
+			return res.status(400).json({
+				ok: false,
+				msg: 'El usuario no tiene permisos para ingresar',
+			});
+		}
+
 		const validPassword = bcryptjs.compareSync(password, usuarioDB.password);
 		if (!validPassword) {
 			return res.status(400).json({
@@ -55,7 +67,7 @@ const ingresarFirebase = async (req, res) => {
 				facebook,
 				rut: '00.000.000-0',
 				rut_original: '//',
-				nombre: name ? name : "Sin nombre",
+				nombre: name ? name : 'Sin nombre',
 				celular: '912345678',
 				region: 'region',
 				ciudad: 'ciudad',

@@ -541,6 +541,7 @@ const buscarProductos = async (req, res, mode) => {
 		///////////////////////////////////////////////////////////////
 		const page = Number(req.query.page) || 1;
 		const limit = Math.min(Number(req.query.limit), 30) || 12;
+		const send_external_ref = req.query.send_external_ref;
 		let optionsPagination = {
 			page: page,
 			limit: limit,
@@ -566,14 +567,19 @@ const buscarProductos = async (req, res, mode) => {
 			optionsPagination.populate += 'categorias';
 		}
 		const productos = await Producto.paginate(filters, optionsPagination);
-		const stopbuy = await getConfig('stopbuy');
+		let external_reference = null;
+
+		if (send_external_ref) {
+			const stopbuy = await getConfig('stopbuy');
+			external_reference = {
+				stopbuy: stopbuy.status,
+			};
+		}
 
 		return res.json({
 			ok: true,
 			productos,
-			external_reference: {
-				stopbuy: stopbuy.status,
-			},
+			external_reference,
 		});
 	} catch (err) {
 		console.log(err);
