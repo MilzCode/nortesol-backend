@@ -7,12 +7,21 @@ const {
 	GetPaymentData,
 	NewPaymentLog,
 } = require('../helpers/mercadopago-functions');
+const { getConfig } = require('../helpers/get-config');
 
 const nuevoPago = async (req, res) => {
 	const API_MERCADOPAGO_CHECKOUT =
 		'https://api.mercadopago.com/checkout/preferences?access_token=' +
 		process.env.ACCESS_TOKEN_MERCADOPAGO;
 	try {
+		const stopbuy = await getConfig('stopbuy');
+		if (stopbuy?.status) {
+			return res.status(400).json({
+				ok: false,
+				msg: 'Esta desactivado realizar compras',
+			});
+		}
+
 		const {
 			productosAndQty = [], // [{p: producto pid, c: cantidad},...]
 			domicilio = false,
@@ -238,8 +247,7 @@ const webhookPagoCreado = async (req, res) => {
 				const paymentData = await GetPaymentData(id_pay);
 				//find pedido if exist update status if status is approved, else create new pedido
 				if (!paymentData) {
-					console.log('No se pudo obtener los datos del pago.*****');
-
+					console.log('No se pudo obtener los datos del pago. ID: ', id_pay);
 					return res.status(500).json({
 						ok: false,
 						message: 'No se pudo obtener los datos del pago.',

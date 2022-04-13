@@ -14,6 +14,7 @@ class Server {
 			productos_desabilitados: '/api/productos_desabilitados',
 			categorias: '/api/categorias',
 			pedidos: '/api/pedidos',
+			configs: '/api/configs',
 			images: '/api/images',
 			marcas: '/api/marcas',
 			portadas: '/api/portadas',
@@ -62,6 +63,7 @@ class Server {
 		this.app.use(this.rutas.historial, require('../routes/historial.route'));
 		this.app.use(this.rutas.multiples, require('../routes/multiples.route'));
 		this.app.use(this.rutas.mercadopago, require('../routes/mercadopago.route'));
+		this.app.use(this.rutas.configs, require('../routes/configs.route'));
 		this.app.use(
 			this.rutas.productos_desabilitados,
 			require('../routes/productos_desabilitados.route')

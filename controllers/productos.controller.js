@@ -18,6 +18,7 @@ const {
 const { borrarImagenCloudinary } = require('../helpers/images-functions');
 const { NewHistory } = require('../helpers/historial-functions');
 const { CalcularDescuento } = require('../utils/calcular-descuento');
+const { getConfig } = require('../helpers/get-config');
 /*
   TODO: Almacenar nombres en minuscula
 */
@@ -250,7 +251,7 @@ const editarProducto = async (req, res = response) => {
 			nuevaMarca = true;
 		}
 		if (
-			porcentaje_descuento >=0 &&
+			porcentaje_descuento >= 0 &&
 			porcentaje_descuento != productoOriginal.porcentaje_descuento
 		) {
 			nuevoPorcentajeDescuento = true;
@@ -565,8 +566,15 @@ const buscarProductos = async (req, res, mode) => {
 			optionsPagination.populate += 'categorias';
 		}
 		const productos = await Producto.paginate(filters, optionsPagination);
+		const stopbuy = await getConfig('stopbuy');
 
-		return res.json({ ok: true, productos });
+		return res.json({
+			ok: true,
+			productos,
+			external_reference: {
+				stopbuy: stopbuy.status,
+			},
+		});
 	} catch (err) {
 		console.log(err);
 		return res.status(400).json({
