@@ -228,7 +228,6 @@ const buscarUsuarios = async (req, res = response) => {
 		if (celular) {
 			filters.celular = celular.trim();
 		}
-		console.log(filters);
 		//@fin creando filtro
 		const page = Number(req.query.page) || 1;
 		const limit = Math.min(Number(req.query.limit), 99) || 50;

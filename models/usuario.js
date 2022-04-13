@@ -85,15 +85,7 @@ const UsuarioSchema = new Schema({
 		type: Boolean,
 		default: false,
 	},
-	pedidos: {
-		type: [
-			{
-				type: Schema.Types.ObjectId,
-				ref: 'Pedido',
-			},
-		],
-		default: [],
-	},
+
 	carrito: {
 		type: [
 			{
