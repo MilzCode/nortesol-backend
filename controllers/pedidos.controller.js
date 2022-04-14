@@ -58,6 +58,7 @@ const buscarPedido = async (req, res = response) => {
 			total_min,
 			usuario_email,
 			usuario_email_cuenta_mp,
+			sortQuery,
 		} = req.query;
 
 		//@creando filtro
@@ -108,6 +109,7 @@ const buscarPedido = async (req, res = response) => {
 				.trim()
 				.toLowerCase();
 		}
+
 		//@fin creando filtro
 		const page = Number(req.query.page) || 1;
 		const limit = Math.min(Number(req.query.limit), 99) || 50;
@@ -116,6 +118,17 @@ const buscarPedido = async (req, res = response) => {
 			limit: limit,
 			sort: { date: -1 },
 		};
+		if (sortQuery) {
+			const sortQueryJson = JSON.parse(sortQuery);
+			const field = sortQueryJson.field;
+			const sort = sortQueryJson.sort;
+			if (field && sort) {
+				const sortType =
+					sortQueryJson.sort === 'asc' || sortQueryJson.sort === 1 ? 1 : -1;
+
+				optionsPagination.sort = { [field]: sortType };
+			}
+		}
 		const pedidos = await Pedido.paginate(filters, optionsPagination);
 
 		return res.json({ ok: true, pedidos });
