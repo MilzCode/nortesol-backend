@@ -77,6 +77,13 @@ const ingresarFirebase = async (req, res) => {
 			usuarioDB = await usuarioDB.save();
 			newUser = true;
 		}
+		//DISABLED LOGIN TYPE FACEBOOK FOR ADMINS
+		if (usuarioDB.rol === 'ADMIN' && typeLogin === 'facebook') {
+			return res.status(400).json({
+				ok: false,
+				msg: 'El usuario no tiene permisos para ingresar',
+			});
+		}
 
 		const token = await generarJWT(usuarioDB._id);
 
