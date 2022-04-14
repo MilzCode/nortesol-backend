@@ -111,6 +111,7 @@ const nuevoPago = async (req, res) => {
 				rut,
 				domicilio,
 				nombre,
+				date: new Date(),
 			},
 			payment_methods: {
 				excluded_payment_methods: [
@@ -126,13 +127,13 @@ const nuevoPago = async (req, res) => {
 				],
 			},
 			back_urls: {
-				success: 'http://localhost:3001',
-				failure: 'http://localhost:3001',
-				pending: 'http://localhost:3001',
+				success: 'http://localhost:3001/buy/success',
+				failure: 'http://localhost:3001/buy/failure',
+				pending: 'http://localhost:3001/buy/pending',
 			},
 			// notification_url: 'http://localhost:3001/api/mercadopago/webhook',
 			notification_url:
-				'http://3049-152-172-169-75.ngrok.io/api/mercadopago/webhook',
+				'http://60ad-152-173-109-49.ngrok.io/api/mercadopago/webhook',
 			auto_return: 'approved',
 			binary_mode: true,
 		};
