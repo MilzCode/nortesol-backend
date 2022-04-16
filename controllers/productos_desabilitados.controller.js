@@ -98,8 +98,6 @@ const crearProducto = async (req, res = response) => {
 
 		await producto.save();
 		await detallesAdicionales.save();
-		console.log('SE AÑADIO PRODUCTO!!', producto);
-		console.log(req.usuarioAuth);
 		NewHistory({
 			tipo: 'Producto creado',
 			usuario: req.usuarioAuth,
