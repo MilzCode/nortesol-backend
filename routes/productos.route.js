@@ -12,14 +12,6 @@ const { validarJWT } = require('../middlewares/validar-jwt');
 const { tieneRol } = require('../middlewares/validar-roles');
 const router = Router();
 
-/*
-  TODO: falta hacer validaciones
-  - Validar que esten todos los campos obligatorios ok.
-  - Validar que las categorias sean validas ok.
-  - Validar que solo el administrador pueda crear Productos.
-
-  -FALTA VALIDAR QUE EL DESCUENTO NO SEA MAYOR QUE EL PRECIO
-  */
 router.post(
 	'/',
 	[

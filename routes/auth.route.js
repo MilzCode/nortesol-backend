@@ -6,9 +6,7 @@ const {
 } = require('../controllers/auth.controller');
 const { validarCampos } = require('../middlewares/validar-campos');
 const { validarJWT } = require('../middlewares/validar-jwt');
-const {
-	validarTokenFirebase,
-} = require('../middlewares/validar-token-firebase');
+
 const {
 	validarTokenGoogle,
 	validarTokenFacebook,

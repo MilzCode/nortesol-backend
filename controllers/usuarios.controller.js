@@ -3,68 +3,45 @@ const bcryptjs = require('bcryptjs');
 const Usuario = require('../models/usuario');
 const { MINCARACTERESCONTRASENA } = require('../utils/constantes');
 const formatoRut = require('../utils/formato-rut');
-const { process_params } = require('express/lib/router');
 
-const crearUsuario = async (req, res = response) => {
-	try {
-		const { nombre, rut, email, celular, region, ciudad, direccion } = req.body;
-		const salt = await bcryptjs.genSalt();
-		const password = await bcryptjs.hash(req.body.password, salt);
-		const nuevoUsuario = new Usuario({
-			nombre,
-			rut: formatoRut(rut),
-			email,
-			celular,
-			region,
-			ciudad,
-			direccion,
-			password,
-			rut_original: formatoRut(rut), //este campo es seguridad en caso de que se modifique el rut, mantener el rut original de registro.
-			email_original: email,
-		});
-		await nuevoUsuario.save();
-		return res.json({
-			ok: true,
-			msg: 'Usuario creado correctamente',
-			usuario: nuevoUsuario,
-		});
-	} catch (error) {
-		console.log(error);
-		if (error.code === 11000 && error.keyValue.email) {
-			return res.status(400).json({
-				ok: false,
-				msg: 'El correo ya existe',
-			});
-		}
-		return res.status(500).json({
-			ok: false,
-			msg: 'Error inesperado al crear usuario, consulte con el administrador',
-		});
-	}
-};
+// const crearUsuario = async (req, res = response) => {
+// 	try {
+// 		const { nombre, rut, email, celular, region, ciudad, direccion } = req.body;
+// 		const salt = await bcryptjs.genSalt();
+// 		const password = await bcryptjs.hash(req.body.password, salt);
+// 		const nuevoUsuario = new Usuario({
+// 			nombre,
+// 			rut: formatoRut(rut),
+// 			email,
+// 			celular,
+// 			region,
+// 			ciudad,
+// 			direccion,
+// 			password,
+// 			rut_original: formatoRut(rut), //este campo es seguridad en caso de que se modifique el rut, mantener el rut original de registro.
+// 			email_original: email,
+// 		});
+// 		await nuevoUsuario.save();
+// 		return res.json({
+// 			ok: true,
+// 			msg: 'Usuario creado correctamente',
+// 			usuario: nuevoUsuario,
+// 		});
+// 	} catch (error) {
+// 		console.log(error);
+// 		if (error.code === 11000 && error.keyValue.email) {
+// 			return res.status(400).json({
+// 				ok: false,
+// 				msg: 'El correo ya existe',
+// 			});
+// 		}
+// 		return res.status(500).json({
+// 			ok: false,
+// 			msg: 'Error inesperado al crear usuario, consulte con el administrador',
+// 		});
+// 	}
+// };
 
-/**
- * Editar usuario recibe:
- * params:
- * - id
- * body:
- * - nombre
- * - rut
- * - email
- * - celular
- * - region
- * - ciudad
- * - direccion
- */
-
-/*
-  TODO:
-  - si edita contraseña, se debe validar que la contraseña actual sea correcta,
-  - si edita contraseña se debe enviar un email al correo.
-  - si edita email, se debe validar que el email no exista en la base de datos.
-  - si edita email se debe enviar un email al correo anterior por siacaso.
-
-*/
 const editarUsuarioYPass = async (req, res = response) => {
 	try {
 		const { id } = req.params;
@@ -249,7 +226,7 @@ const buscarUsuarios = async (req, res = response) => {
 };
 
 module.exports = {
-	crearUsuario,
+	// crearUsuario,
 	editarUsuario,
 	editarUsuarioYPass,
 	verDatosUsuario,

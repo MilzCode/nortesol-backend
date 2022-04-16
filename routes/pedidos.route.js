@@ -15,8 +15,16 @@ const router = Router();
 TODO:
 - esta ruta solo puede acceder el administrador
 */
-router.get('/all', [validarJWT, tieneRol('ADMIN')], buscarPedido);
-router.put('/:idpedido', [validarJWT, tieneRol('ADMIN')], entregarPedido);
+router.get(
+	'/all',
+	[validarJWT, tieneRol('ADMIN'), validarCampos],
+	buscarPedido
+);
+router.put(
+	'/:idpedido',
+	[validarJWT, tieneRol('ADMIN'), validarCampos],
+	entregarPedido
+);
 
 router.get(
 	'/mis-pedidos/:idUsuario',
@@ -31,10 +39,5 @@ router.get(
 	],
 	pedidosUsuarioId
 );
-/* 
-    TODO: Almacenar datos en mayusculas
-    - Validar que los campos obligatorios esten presentes
-
-*/
 
 module.exports = router;

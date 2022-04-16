@@ -22,7 +22,6 @@ class Server {
 			historial: '/api/historial',
 			multiples: '/api/multiples',
 			mercadopago: '/api/mercadopago',
-			test: '/api/test',
 		};
 		this.connectDb();
 		this.middlewares();
@@ -68,7 +67,6 @@ class Server {
 			this.rutas.productos_desabilitados,
 			require('../routes/productos_desabilitados.route')
 		);
-		this.app.use(this.rutas.test, require('../routes/test.route'));
 	}
 
 	listen() {

@@ -1,8 +1,14 @@
 const { Router } = require('express');
 const { check } = require('express-validator');
-const { mostrarMarcas, crearMarca } = require('../controllers/marcas.controller');
+const {
+	mostrarMarcas,
+	crearMarca,
+} = require('../controllers/marcas.controller');
 
 const { validarCampos } = require('../middlewares/validar-campos');
+const { validarJWT } = require('../middlewares/validar-jwt');
+const { tieneRol } = require('../middlewares/validar-roles');
+
 const router = Router();
 
 /*
@@ -16,6 +22,8 @@ router.post(
 	'/',
 	[
 		check('nombre', 'El nombre de la marca es obligatorio').not().isEmpty(),
+		validarJWT,
+		tieneRol('ADMIN'),
 		validarCampos,
 	],
 	crearMarca

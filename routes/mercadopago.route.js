@@ -8,6 +8,6 @@ const { validarJWT } = require('../middlewares/validar-jwt');
 const router = Router();
 
 router.post('/', [validarJWT, validarCampos], nuevoPago);
-router.post('/webhook', [], webhookPagoCreado);
+router.post('/webhook', webhookPagoCreado);
 
 module.exports = router;
