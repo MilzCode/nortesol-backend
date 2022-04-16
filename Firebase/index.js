@@ -3,7 +3,7 @@
 //como en el ejemplo que se ve abajo
 // admin.initializeApp({
 // 	credential: admin.credential.cert(
-// 		require('./nortesol-a640d-firebase-adminsdk-bwqa9-7322f93023.json')
+// 		require('./nortesol-b6560d-firebase-adminsdk-bwqa9-722222f93043.json')
 // 	),
 // });
 
