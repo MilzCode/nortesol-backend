@@ -40,7 +40,7 @@ router.put(
 			'direccion',
 			'La direccion no puede tener más de 100 caracteres'
 		).isLength({
-			max: 150,
+			max: 200,
 		}),
 
 		validarJWT,
