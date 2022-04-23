@@ -570,7 +570,7 @@ const buscarProductos = async (req, res, mode) => {
 		if (send_external_ref) {
 			const stopbuy = await getConfig('stopbuy');
 			external_reference = {
-				stopbuy: stopbuy?.status ? stopbuy.status : true,
+				stopbuy: stopbuy != null ? stopbuy.status : true,
 			};
 		}
 
