@@ -31,6 +31,8 @@ const validarTokenGoogle = async (req, res = response, next) => {
 const validarTokenFacebook = async (req, res = response, next) => {
 	try {
 		const token = req.header('f-token');
+		console.log('Ingreso con facebook');
+		console.log({ token });
 		if (!token) {
 			return res.status(401).json({
 				ok: false,
