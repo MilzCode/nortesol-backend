@@ -33,7 +33,13 @@ class Server {
 	middlewares() {
 		//CORS
 		//TODO: Falta configurar cors para que solo funcione en rutas especificas, ahora cualquier ruta funciona
-		this.app.use(cors());
+		this.app.use(
+			cors({
+				origin: '*',
+				methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+				credentials: true,
+			})
+		);
 		//Lectura y parseo body
 		this.app.use(express.json());
 		// parse application/x-www-form-urlencoded
@@ -61,7 +67,10 @@ class Server {
 		this.app.use(this.rutas.anuncios, require('../routes/anuncios.route'));
 		this.app.use(this.rutas.historial, require('../routes/historial.route'));
 		this.app.use(this.rutas.multiples, require('../routes/multiples.route'));
-		this.app.use(this.rutas.mercadopago, require('../routes/mercadopago.route'));
+		this.app.use(
+			this.rutas.mercadopago,
+			require('../routes/mercadopago.route')
+		);
 		this.app.use(this.rutas.configs, require('../routes/configs.route'));
 		this.app.use(
 			this.rutas.productos_desabilitados,
