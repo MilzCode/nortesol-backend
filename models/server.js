@@ -34,6 +34,7 @@ class Server {
 		//CORS
 		//TODO: Falta configurar cors para que solo funcione en rutas especificas, ahora cualquier ruta funciona
 		const whiteList = [process.env.FRONT_URL, process.env.FRONT_URL_ADM];
+		console.log(whiteList);
 		this.app.use(
 			cors({
 				origin: (origin, callback) => {
