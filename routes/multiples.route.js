@@ -16,7 +16,7 @@ const {
 const { validarCampos } = require('../middlewares/validar-campos');
 const { validarJWT } = require('../middlewares/validar-jwt');
 const { tieneRol } = require('../middlewares/validar-roles');
-
+ 
 const router = Router();
 
 router.post(
