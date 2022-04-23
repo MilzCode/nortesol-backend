@@ -1,5 +1,8 @@
 const Config = require('../models/config');
 
+/**
+ * Este metodo retornara la configuracion de un tipo dado, si hay algun error retornarar null
+ */
 const getConfig = async (type = '') => {
 	try {
 		if (!type) {
