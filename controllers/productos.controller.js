@@ -565,12 +565,12 @@ const buscarProductos = async (req, res, mode) => {
 			optionsPagination.populate += 'categorias';
 		}
 		const productos = await Producto.paginate(filters, optionsPagination);
-		let external_reference = null;
+		let external_reference = false;
 
 		if (send_external_ref) {
 			const stopbuy = await getConfig('stopbuy');
 			external_reference = {
-				stopbuy: stopbuy.status,
+				stopbuy: stopbuy?.status ? stopbuy.status : true,
 			};
 		}
 
