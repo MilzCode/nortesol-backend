@@ -43,7 +43,6 @@ class Server {
 						callback(new Error('Not allowed by CORS'));
 					}
 				},
-				credentials: true,
 			})
 		);
 		//Lectura y parseo body
