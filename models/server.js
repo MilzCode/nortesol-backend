@@ -33,10 +33,16 @@ class Server {
 	middlewares() {
 		//CORS
 		//TODO: Falta configurar cors para que solo funcione en rutas especificas, ahora cualquier ruta funciona
+		const whiteList = [process.env.FRONT_URL, process.env.FRONT_URL_ADM];
 		this.app.use(
 			cors({
-				origin: '*',
-				methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+				origin: (origin, callback) => {
+					if (whiteList.indexOf(origin) !== -1) {
+						callback(null, true);
+					} else {
+						callback(new Error('Not allowed by CORS'));
+					}
+				},
 				credentials: true,
 			})
 		);

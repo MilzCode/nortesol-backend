@@ -33,7 +33,6 @@ const setConfig = async (req, res) => {
 };
 
 const getConfigs = async (req, res) => {
-	console.log('acaget');
 	try {
 		const configs = await Config.find();
 		return res.json({
