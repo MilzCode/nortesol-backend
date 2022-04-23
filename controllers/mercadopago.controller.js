@@ -126,13 +126,12 @@ const nuevoPago = async (req, res) => {
 				],
 			},
 			back_urls: {
-				success: 'http://localhost:3001/buy/success',
-				failure: 'http://localhost:3001/buy/failure',
-				pending: 'http://localhost:3001/buy/pending',
+				success: process.env.FRONT_URL + '/buy/success',
+				failure: process.env.FRONT_URL + '/buy/failure',
+				pending: process.env.FRONT_URL + '/buy/pending',
 			},
-			// notification_url: 'http://localhost:3001/api/mercadopago/webhook',
-			notification_url:
-				'http://6e8d-152-173-91-230.ngrok.io/api/mercadopago/webhook',
+
+			notification_url: process.env.NOTIFICATION_URL_MERCADOPAGO,
 			auto_return: 'approved',
 			binary_mode: true,
 		};
