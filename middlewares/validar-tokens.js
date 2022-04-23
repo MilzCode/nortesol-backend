@@ -31,8 +31,6 @@ const validarTokenGoogle = async (req, res = response, next) => {
 const validarTokenFacebook = async (req, res = response, next) => {
 	try {
 		const token = req.header('f-token');
-		console.log('Ingreso con facebook');
-		console.log({ token });
 		if (!token) {
 			return res.status(401).json({
 				ok: false,
@@ -49,6 +47,7 @@ const validarTokenFacebook = async (req, res = response, next) => {
 		const response = await axios.get(url, { params });
 		const data = response.data.data;
 		if (!data.scopes.includes('email')) {
+			console.log('TEST: No tiene permisos de email');
 			return res.status(401).json({
 				ok: false,
 				msg: 'No tiene permisos de email',
@@ -63,11 +62,12 @@ const validarTokenFacebook = async (req, res = response, next) => {
 		};
 		const responseUser = await axios.get(urlUser, { params: paramsUser });
 		const dataUser = responseUser.data;
+		console.log('TEST: TODO OK');
 		req.usuarioData = { ...dataUser, typeLogin: 'facebook' };
 
 		next();
 	} catch (error) {
-		console.log(error);
+		console.log({ error });
 		return res.status(401).json({
 			ok: false,
 			msg: 'Token no valido',
