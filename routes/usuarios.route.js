@@ -22,9 +22,11 @@ router.put(
 		check('nombre', 'El nombre no puede tenes más de 100 caracteres').isLength({
 			max: 100,
 		}),
+		check('nombre', 'El nombre no puede estar vacío').isString(),
 		check('rut', 'El rut no puede tener más de 12 caracteres').isLength({
 			max: 12,
 		}),
+		check('rut', 'El rut no puede estar vacío').isString(),
 		check('celular', 'El celular no puede tener más de 12 caracteres').isLength(
 			{
 				max: 12,
@@ -33,15 +35,18 @@ router.put(
 		check('region', 'La region no puede tener más de 100 caracteres').isLength({
 			max: 100,
 		}),
+		check('region', 'La region no puede estar vacía').isString(),
 		check('ciudad', 'La ciudad no puede tener más de 100 caracteres').isLength({
 			max: 100,
 		}),
+		check('ciudad', 'La ciudad no puede estar vacía').isString(),
 		check(
 			'direccion',
 			'La direccion no puede tener más de 100 caracteres'
 		).isLength({
 			max: 200,
 		}),
+		check('direccion', 'La direccion no puede estar vacía').isString(),
 
 		validarJWT,
 		// esMiIdUrl('id', 'ADMIN'),

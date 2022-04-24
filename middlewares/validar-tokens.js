@@ -47,7 +47,6 @@ const validarTokenFacebook = async (req, res = response, next) => {
 		const response = await axios.get(url, { params });
 		const data = response.data.data;
 		if (!data.scopes.includes('email')) {
-			console.log('TEST: No tiene permisos de email');
 			return res.status(401).json({
 				ok: false,
 				msg: 'No tiene permisos de email',
@@ -62,7 +61,6 @@ const validarTokenFacebook = async (req, res = response, next) => {
 		};
 		const responseUser = await axios.get(urlUser, { params: paramsUser });
 		const dataUser = responseUser.data;
-		console.log('TEST: TODO OK');
 		req.usuarioData = { ...dataUser, typeLogin: 'facebook' };
 
 		next();
