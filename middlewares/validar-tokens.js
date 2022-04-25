@@ -30,7 +30,6 @@ const validarTokenGoogle = async (req, res = response, next) => {
 
 const validarTokenFacebook = async (req, res = response, next) => {
 	try {
-		console.log("intento con facebook")
 		const token = req.header('f-token');
 		if (!token) {
 			return res.status(401).json({
