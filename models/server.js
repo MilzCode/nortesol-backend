@@ -33,17 +33,31 @@ class Server {
 	middlewares() {
 		//CORS
 		const whiteList = [process.env.FRONT_URL, process.env.FRONT_URL_ADM];
-		this.app.use(
+		// this.app.use(
+		// 	cors({
+		// 		origin: (origin, callback) => {
+		// 			if (whiteList.indexOf(origin) !== -1) {
+		// 				callback(null, true);
+		// 			} else {
+		// 				callback(new Error('Not allowed by CORS'));
+		// 			}
+		// 		},
+		// 	})
+		// );
+		this.app.use((req, res, next) => {
 			cors({
 				origin: (origin, callback) => {
-					if (whiteList.indexOf(origin) !== -1) {
+					if (
+						whiteList.indexOf(origin) !== -1 ||
+						process.env.ORIGIN_SV_KEY == req.headers.origin_sv
+					) {
 						callback(null, true);
 					} else {
 						callback(new Error('Not allowed by CORS'));
 					}
 				},
-			})
-		);
+			})(req, res, next);
+		});
 
 		//Lectura y parseo body
 		this.app.use(express.json());
