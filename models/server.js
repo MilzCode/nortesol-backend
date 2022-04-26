@@ -41,10 +41,7 @@ class Server {
 					} else {
 						callback(new Error('Not allowed by CORS'));
 					}
-					callback(null, true);
 				},
-				//get headers
-				credentials: true,
 			})
 		);
 
