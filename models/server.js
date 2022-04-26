@@ -34,18 +34,17 @@ class Server {
 		//CORS
 		const whiteList = [process.env.FRONT_URL, process.env.FRONT_URL_ADM];
 		this.app.use(
-			cors(
-			// 	{
-			// 	origin: (origin, callback) => {
-			// 		console.log({ origin });
-			// 		if (whiteList.indexOf(origin) !== -1) {
-			// 			callback(null, true);
-			// 		} else {
-			// 			callback(new Error('Not allowed by CORS'));
-			// 		}
-			// 	},
-			// }
-			)
+			cors({
+				origin: (origin, callback) => {
+					console.log({ origin });
+					// if (whiteList.indexOf(origin) !== -1) {
+					// 	callback(null, true);
+					// } else {
+					// 	callback(new Error('Not allowed by CORS'));
+					// }
+					callback(null, true);
+				},
+			})
 		);
 		//Lectura y parseo body
 		this.app.use(express.json());
