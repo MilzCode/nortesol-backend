@@ -44,8 +44,16 @@ class Server {
 					// }
 					callback(null, true);
 				},
+				//get headers
+				credentials: true,
 			})
 		);
+
+		this.app.use((req, res, next) => {
+			console.log(req.headers);
+			next();
+		});
+
 		//Lectura y parseo body
 		this.app.use(express.json());
 		// parse application/x-www-form-urlencoded
