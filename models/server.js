@@ -49,12 +49,6 @@ class Server {
 			})
 		);
 
-		this.app.use((req, next) => {
-			console.log('headers');
-			console.log(req.headers);
-			next();
-		});
-
 		//Lectura y parseo body
 		this.app.use(express.json());
 		// parse application/x-www-form-urlencoded
