@@ -36,12 +36,11 @@ class Server {
 		this.app.use(
 			cors({
 				origin: (origin, callback) => {
-					console.log({ origin });
-					// if (whiteList.indexOf(origin) !== -1) {
-					// 	callback(null, true);
-					// } else {
-					// 	callback(new Error('Not allowed by CORS'));
-					// }
+					if (whiteList.indexOf(origin) !== -1) {
+						callback(null, true);
+					} else {
+						callback(new Error('Not allowed by CORS'));
+					}
 					callback(null, true);
 				},
 				//get headers
