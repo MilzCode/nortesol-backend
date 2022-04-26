@@ -6,6 +6,7 @@ const Producto = require('../models/producto_desabilitado');
 const ProductoDesabilitado = require('../models/producto');
 const Marca = require('../models/marca');
 const Categoria = require('../models/categoria');
+
 const { urlStyle } = require('../utils/url-style');
 const {
 	MAXCATEGORIASPORPRODUCTO,
@@ -18,6 +19,7 @@ const {
 const { borrarImagenCloudinary } = require('../helpers/images-functions');
 const { NewHistory } = require('../helpers/historial-functions');
 const { CalcularDescuento } = require('../utils/calcular-descuento');
+const { getConfig } = require('../helpers/get-config');
 /*
   TODO: Almacenar nombres en minuscula
 */
@@ -248,7 +250,7 @@ const editarProducto = async (req, res = response) => {
 			nuevaMarca = true;
 		}
 		if (
-			porcentaje_descuento >=0 &&
+			porcentaje_descuento >= 0 &&
 			porcentaje_descuento != productoOriginal.porcentaje_descuento
 		) {
 			nuevoPorcentajeDescuento = true;
@@ -460,10 +462,12 @@ const buscarProductos = async (req, res, mode) => {
 		populateMarcas,
 		porcentaje_descuento_min,
 		porcentaje_descuento_max,
+		queryParamsFront,
 		//
 		sortQuery,
 	} = req.query;
 	try {
+		//TODO: REVISAR QUE SE ESTE LLAMANDO SOLO UNA VEZ EN EL FRONT
 		//@ingresos que retornan un solo producto
 		if (nombre_url) {
 			return buscarProductoNombre_url(req, res, { nombre_url });
@@ -473,6 +477,48 @@ const buscarProductos = async (req, res, mode) => {
 		}
 
 		//@fin de ingresos que retornan un solo producto
+		//@Revisando queryParamsFront
+		if (queryParamsFront) {
+			queryParamsFront = JSON.parse(queryParamsFront);
+
+			if (queryParamsFront.cat || queryParamsFront.marca) {
+				const marcasNames = queryParamsFront.marca
+					?.trim()
+					.split(',')
+					.slice(0, MAXMARCASFILTER);
+				const categoriasNames = queryParamsFront.cat
+					?.trim()
+					.split(',')
+					.slice(0, MAXCATEGORIASFILTER);
+
+				if (
+					(categoriasNames && categoriasNames.length > 0) ||
+					(marcasNames && marcasNames.length > 0)
+				) {
+					//TODO: usar cache para obtener categorias y marcas
+					const getCategoriasReq = Categoria.find({
+						nombre: { $in: categoriasNames },
+					});
+					const getMarcasReq = Marca.find({
+						nombre: { $in: marcasNames },
+					});
+					const [categoriasRes, marcasRes] = await Promise.all([
+						getCategoriasReq,
+						getMarcasReq,
+					]);
+
+					categorias = categoriasRes.map((c) => c._id);
+					marcas = marcasRes.map((m) => m._id);
+				}
+			}
+
+			queryParamsFront.busqueda && (busqueda = queryParamsFront.busqueda);
+			queryParamsFront.pmin && (precio_min = queryParamsFront.pmin);
+			queryParamsFront.pmax && (precio_max = queryParamsFront.pmax);
+			req.query.page = queryParamsFront.page;
+		}
+		//@fin de revisando queryParamsFront
+
 		//@Revisando los ingresos que retornan productos paginados
 		let filters = {};
 		if (busqueda) {
@@ -538,6 +584,7 @@ const buscarProductos = async (req, res, mode) => {
 		///////////////////////////////////////////////////////////////
 		const page = Number(req.query.page) || 1;
 		const limit = Math.min(Number(req.query.limit), 30) || 12;
+		const send_external_ref = req.query.send_external_ref;
 		let optionsPagination = {
 			page: page,
 			limit: limit,
@@ -563,8 +610,20 @@ const buscarProductos = async (req, res, mode) => {
 			optionsPagination.populate += 'categorias';
 		}
 		const productos = await Producto.paginate(filters, optionsPagination);
+		let external_reference = false;
 
-		return res.json({ ok: true, productos });
+		if (send_external_ref) {
+			const stopbuy = await getConfig('stopbuy');
+			external_reference = {
+				stopbuy: stopbuy != null ? stopbuy.status : true,
+			};
+		}
+
+		return res.json({
+			ok: true,
+			productos,
+			external_reference,
+		});
 	} catch (err) {
 		console.log(err);
 		return res.status(400).json({

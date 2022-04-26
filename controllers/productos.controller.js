@@ -6,6 +6,7 @@ const Producto = require('../models/producto');
 const ProductoDesabilitado = require('../models/producto_desabilitado');
 const Marca = require('../models/marca');
 const Categoria = require('../models/categoria');
+
 const { urlStyle } = require('../utils/url-style');
 const {
 	MAXCATEGORIASPORPRODUCTO,
@@ -461,10 +462,12 @@ const buscarProductos = async (req, res, mode) => {
 		populateMarcas,
 		porcentaje_descuento_min,
 		porcentaje_descuento_max,
+		queryParamsFront,
 		//
 		sortQuery,
 	} = req.query;
 	try {
+		//TODO: REVISAR QUE SE ESTE LLAMANDO SOLO UNA VEZ EN EL FRONT
 		//@ingresos que retornan un solo producto
 		if (nombre_url) {
 			return buscarProductoNombre_url(req, res, { nombre_url });
@@ -474,6 +477,48 @@ const buscarProductos = async (req, res, mode) => {
 		}
 
 		//@fin de ingresos que retornan un solo producto
+		//@Revisando queryParamsFront
+		if (queryParamsFront) {
+			queryParamsFront = JSON.parse(queryParamsFront);
+
+			if (queryParamsFront.cat || queryParamsFront.marca) {
+				const marcasNames = queryParamsFront.marca
+					?.trim()
+					.split(',')
+					.slice(0, MAXMARCASFILTER);
+				const categoriasNames = queryParamsFront.cat
+					?.trim()
+					.split(',')
+					.slice(0, MAXCATEGORIASFILTER);
+
+				if (
+					(categoriasNames && categoriasNames.length > 0) ||
+					(marcasNames && marcasNames.length > 0)
+				) {
+					//TODO: usar cache para obtener categorias y marcas
+					const getCategoriasReq = Categoria.find({
+						nombre: { $in: categoriasNames },
+					});
+					const getMarcasReq = Marca.find({
+						nombre: { $in: marcasNames },
+					});
+					const [categoriasRes, marcasRes] = await Promise.all([
+						getCategoriasReq,
+						getMarcasReq,
+					]);
+
+					categorias = categoriasRes.map((c) => c._id);
+					marcas = marcasRes.map((m) => m._id);
+				}
+			}
+
+			queryParamsFront.busqueda && (busqueda = queryParamsFront.busqueda);
+			queryParamsFront.pmin && (precio_min = queryParamsFront.pmin);
+			queryParamsFront.pmax && (precio_max = queryParamsFront.pmax);
+			req.query.page = queryParamsFront.page;
+		}
+		//@fin de revisando queryParamsFront
+
 		//@Revisando los ingresos que retornan productos paginados
 		let filters = {};
 		if (busqueda) {

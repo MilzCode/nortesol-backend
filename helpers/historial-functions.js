@@ -2,7 +2,6 @@ const Historial = require('../models/historial');
 
 const NewHistory = ({ tipo, usuario, detalle }) => {
 	try {
-		console.log(usuario);
 		let { _id, email } = usuario;
 		if (!_id || !email) {
 			console.log('Error al crear historial, no se encontró usuario');
