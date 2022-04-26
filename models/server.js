@@ -49,7 +49,8 @@ class Server {
 				origin: (origin, callback) => {
 					if (
 						whiteList.indexOf(origin) !== -1 ||
-						process.env.ORIGIN_SV_KEY == req.headers.origin_sv
+						(process.env.ORIGIN_SV_KEY &&
+							process.env.ORIGIN_SV_KEY == req.headers.origin_sv)
 					) {
 						callback(null, true);
 					} else {
