@@ -45,7 +45,10 @@ class Server {
 		// 	})
 		// );
 		this.app.use((req, res, next) => {
-			console.log({ svkey: req.headers.origin_sv });
+			console.log({
+				svkey: req.headers.origin_sv,
+				svkeyHost: process.env.ORIGIN_SV_KEY,
+			});
 			cors({
 				origin: (origin, callback) => {
 					if (
