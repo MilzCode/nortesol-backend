@@ -465,6 +465,9 @@ const buscarProductos = async (req, res, mode) => {
 		sortQuery,
 	} = req.query;
 	try {
+		const origin = (req.headers.origin =
+			req.headers.origin || req.headers.host);
+		console.log({ origen: origin });
 		//@ingresos que retornan un solo producto
 		if (nombre_url) {
 			return buscarProductoNombre_url(req, res, { nombre_url });
