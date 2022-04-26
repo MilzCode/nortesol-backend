@@ -49,7 +49,8 @@ class Server {
 			})
 		);
 
-		this.app.use((req, res, next) => {
+		this.app.use((req, next) => {
+			console.log('headers');
 			console.log(req.headers);
 			next();
 		});
