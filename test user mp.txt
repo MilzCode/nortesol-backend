@@ -32,3 +32,32 @@ Client Secret
     "site_status": "active",
     "email": "test_user_67432707@testuser.com"
 }
+
+
+//Tarjetas de prueba
+
+Tarjeta	Número	Código de seguridad	Fecha de caducidad
+Mastercard	5416 7526 0258 2580	123	11/25
+Visa	4168 8188 4444 7115	123	11/25
+American Express	3757 781744 61804	1234	11/25
+
+
+mastercard:
+5416752602582580
+123
+11/25
+
+visa:
+4168818844447115 
+123
+11/25
+
+APRO	Pago aprobado	(otro) 123456789
+OTHE	Rechazado por error general	(otro) 123456789
+CONT	Pendiente de pago
+CALL	Rechazado con validación para autorizar
+FUND	Rechazado por importe insuficiente
+SECU	Rechazado por código de seguridad inválido
+EXPI	Rechazado debido a un problema de fecha de vencimiento
+FORM	Rechazado debido a un error de formulario
+
