@@ -32,39 +32,7 @@ class Server {
 	}
 	middlewares() {
 		//CORS
-		const whiteList = [process.env.FRONT_URL, process.env.FRONT_URL_ADM];
-		// this.app.use(
-		// 	cors({
-		// 		origin: (origin, callback) => {
-		// 			if (whiteList.indexOf(origin) !== -1) {
-		// 				callback(null, true);
-		// 			} else {
-		// 				callback(new Error('Not allowed by CORS'));
-		// 			}
-		// 		},
-		// 	})
-		// );
-		this.app.use((req, res, next) => {
-			console.log("WENA")
-			// console.log({
-			// 	svkey: req.headers.origin_sv,
-			// 	svkeyHost: process.env.ORIGIN_SV_KEY,
-			// });
-			cors({
-				origin: (origin, callback) => {
-					callback(null, true);
-					// if (
-					// 	whiteList.indexOf(origin) !== -1 ||
-					// 	(process.env.ORIGIN_SV_KEY && process.env.ORIGIN_SV_KEY == req.headers.origin_sv)
-					// ) {
-					// 	callback(null, true);
-					// } else {
-					// 	callback(new Error("Not allowed by CORS"));
-					// }
-				}
-			})(req, res, next);
-		});
-
+		this.app.use(cors());
 		//Lectura y parseo body
 		this.app.use(express.json());
 		// parse application/x-www-form-urlencoded
